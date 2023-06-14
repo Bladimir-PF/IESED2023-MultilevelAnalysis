@@ -81,7 +81,7 @@ Originalmente existen 281.457 registros en la base de datos del proceso de admis
 
 El primer filtro se aplica de cualquier modo a la muestra, ya que el modelo utiliza `eliminación por lista` (listwise deletion) para estimar los parámetros. Además, ambos filtros ayudan en la construcción de las variables de nivel 2 para los predictores de nivel 1.
 
-La muestra final estuvo constituida por 229.884 postulantes. Sin embargo, para probar la capacidad predictiva del modelo, se utilizó validación cruzada [], específicamente un conjunto de validación que representa la mitad de la muestra (seleccionada aleatoriamente según colegio [RBD]). En el primer conjunto de datos se estiman los diferentes modelos de interés hasta obtener la versión final, luego, en el conjunto de validación, se ajusta el mismo modelo y se comparan los estadísticos de ajuste.
+La muestra final estuvo constituida por 229.884 postulantes. Sin embargo, para probar la capacidad predictiva del modelo, se utilizó validación cruzada [@james2013introduction], específicamente un conjunto de validación que representa la mitad de la muestra (seleccionada aleatoriamente según colegio [RBD]). En el primer conjunto de datos se estiman los diferentes modelos de interés hasta obtener la versión final, luego, en el conjunto de validación, se ajusta el mismo modelo y se comparan los estadísticos de ajuste.
 
 En particular, el conjunto de entrenamiento estuvo constituido por 114.762 postulantes pertenencientes a 1550 colegios. El conjunto de validación estuvo constituido por 114.231 casos distribuidos en 1550 colegios.  
 

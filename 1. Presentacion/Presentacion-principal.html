@@ -1792,7 +1792,7 @@ admisión 2022 desde una perspectiva multinivel</h1>
 <p>
 <button type="button" class="btn btn-default btn-workflowr btn-workflowr-report" data-toggle="collapse" data-target="#workflowr-report">
 <span class="glyphicon glyphicon-list" aria-hidden="true"></span>
-workflowr <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span>
+workflowr <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span>
 </button>
 </p>
 <div id="workflowr-report" class="collapse">
@@ -1801,8 +1801,7 @@ workflowr <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"><
 <a data-toggle="tab" href="#summary">Summary</a>
 </li>
 <li>
-<a data-toggle="tab" href="#checks"> Checks <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span>
-</a>
+<a data-toggle="tab" href="#checks"> Checks <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span> </a>
 </li>
 <li>
 <a data-toggle="tab" href="#versions">Past versions</a>
@@ -1814,8 +1813,8 @@ workflowr <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"><
 <strong>Last updated:</strong> 2023-06-14
 </p>
 <p>
-<strong>Checks:</strong> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> 7
-<span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span> 0
+<strong>Checks:</strong> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> 6
+<span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span> 1
 </p>
 <p>
 <strong>Knit directory:</strong> <code>~/OneDrive - University of
@@ -1837,16 +1836,19 @@ versions</em> tab lists the development history.
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRMarkdownfilestronguptodate">
-<span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>R Markdown file:</strong> up-to-date
-</a>
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRMarkdownfilestronguncommittedchanges">
+<span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span> <strong>R Markdown file:</strong> uncommitted
+changes </a>
 </p>
 </div>
-<div id="strongRMarkdownfilestronguptodate" class="panel-collapse collapse">
+<div id="strongRMarkdownfilestronguncommittedchanges" class="panel-collapse collapse">
 <div class="panel-body">
-<p>Great! Since the R Markdown file has been committed to the Git
-repository, you know the exact version of the code that produced these
-results.</p>
+<p>The R Markdown file has staged changes. To know which version of the
+R Markdown file created these results, you’ll want to first commit it to
+the Git repo. If you’re still working on the analysis, you can ignore
+this warning. When you’re finished, you can run
+<code>wflow_publish</code> to commit the R Markdown file and build the
+HTML.</p>
 </div>
 </div>
 </div>
@@ -1960,14 +1962,24 @@ were generated:
 </p>
 <pre><code>
 Ignored files:
+    Ignored:    .RData
+    Ignored:    .Rhistory
     Ignored:    .Rproj.user/
-    Ignored:    2. Lecturas recomendadas/
     Ignored:    3. Ejemplos adicionales/
 
 Untracked files:
-    Untracked:  .gitignore
-    Untracked:  1. Presentacion/
+    Untracked:  2. Lecturas recomendadas/
     Untracked:  IESED2023-MultilevelAnalysis.Rproj
+
+Unstaged changes:
+    Modified:   1. Presentacion/Presentacion-principal.Rmd
+    Modified:   1. Presentacion/Ref1.bib
+
+Staged changes:
+    New:        .gitignore
+    New:        1. Presentacion/Presentacion-principal.Rmd
+    New:        1. Presentacion/Presentacion-principal.html
+    New:        1. Presentacion/Ref1.bib
 
 </code></pre>
 <p>
@@ -2052,12 +2064,11 @@ Matemática del año 2022 desde una perspectiva multinivel</em>.</p>
 <div id="diseño" class="section level2">
 <h2>Diseño</h2>
 <p>Este es un estudio cuantitativo de diseño transversal, centrado en
-los resultados del proceso de admisión a la educación superior selectiva
-del año 2022. Además del análisis descriptivo de los factores académicos
-de admisión (NEM, Ranking, y pruebas de admisión en matemáticas y
-lenguaje), se estimó un modelo de senderos, o path analysis, para
-analizar el efecto que variables socioeconómicas de interés tiene sobre
-las distintas condiciones o resultados de las postulaciones.</p>
+los resultados de la PDT de Matemática del año 2022. Además del análisis
+descriptivo de los puntajes promedio en esta prueba según variables
+socioeconómicas individuales y escolares, se estimó un modelo de
+regresión lineal multinivel para analizar el efecto que variables
+socioeconómicas tuvieron sobre los distintos niveles de rendimiento.</p>
 </div>
 <div id="datos" class="section level2">
 <h2>Datos</h2>
@@ -2066,39 +2077,36 @@ cuales fueron solicitados al DEMRE a través de su <a href="https://demre.cl/por
 datos</a>. Cabe destacar que a diferencia de procesos anteriores, el
 DEMRE ahora facilita un único repositorio con la información de las
 distintas etapas del proceso.</p>
-<p>Entre las variables extraídas de la fuente original se encuentran los
-puntajes en las pruebas de admisión en lenguaje y matemáticas, puntajes
-derivados de las notas de enseñanza media (NEM y Ranking), educación del
-padre y la madre, decil de ingresos percápita por familia, y situación
-de las postulaciones del estudiante.</p>
-<p>Como pueden darse cuenta, solo dos variables se consideraron como
-predictores de interés. En el caso de las variables de caracterización
-de los colegios, no se agregaron por conveniencia, ya que al incluirlos
-necesitaríamos ajustar el modelo a la estructura anidada de los datos
-para identificar adecuamente el rol de cada predictor en distintos
-niveles (al interior y entre colegios) y no tener errores estándar
-sesgados en los efectos de nivel 1. Además, como la pregunta de
-investigación involucra aspectos socioeconómicas, no se agregaron
-variables demográficas.</p>
 </div>
 <div id="muestra" class="section level2">
 <h2>Muestra</h2>
 <p>Originalmente existen 281.457 registros en la base de datos del
-proceso de admisión 2022 provista por el DEMRE. Sin embargo, de acuerdo
-con el objetivo de investigación, se aplicaron 3 filtros a la base de
-datos original:</p>
+proceso de admisión 2022 provista por el DEMRE. Según el objetivo de
+investigación y el análisis propuesto, solamente dos fitros fueron
+aplicados:</p>
 <ol style="list-style-type: decimal">
-<li>Egresados/as de enseñanza media técnica o humanista regular
-(<code>n = 258.728</code>)</li>
-<li>Graduados/as en 2021 (<code>n = 172.346</code>)</li>
-<li>Puntajes válidos en los factores académicos de selección
-(<code>n = 150.811</code>)</li>
+<li>El estudiante debe tener un puntaje válido (entre 150 y 850 puntos)
+en la PDT de Matemática.</li>
+<li>El colegio en el cual estudió el postulante debe contar con al menos
+10 registros.</li>
 </ol>
-<p>Con esto pretendemos definir la unidad de observación: aquel
-estudiante recién egresado de la educación secundaria, expuesto a los
-contenidos utilizados para diseñar los exámenes de admisión y que tiene
-los puntajes necesarios para la construcción del puntaje compuesto para
-postular a cada programa selectivo.</p>
+<p>El primer filtro se aplica de cualquier modo a la muestra, ya que el
+modelo utiliza <code>eliminación por lista</code> (listwise deletion)
+para estimar los parámetros. Además, ambos filtros ayudan en la
+construcción de las variables de nivel 2 para los predictores de nivel
+1.</p>
+<p>La muestra final estuvo constituida por 229.884 postulantes. Sin
+embargo, para probar la capacidad predictiva del modelo, se utilizó
+validación cruzada <span class="citation">(James et al. 2013)</span>,
+específicamente un conjunto de validación que representa la mitad de la
+muestra (seleccionada aleatoriamente según colegio [RBD]). En el primer
+conjunto de datos se estiman los diferentes modelos de interés hasta
+obtener la versión final, luego, en el conjunto de validación, se ajusta
+el mismo modelo y se comparan los estadísticos de ajuste.</p>
+<p>En particular, el conjunto de entrenamiento estuvo constituido por
+114.762 postulantes pertenencientes a 1550 colegios. El conjunto de
+validación estuvo constituido por 114.231 casos distribuidos en 1550
+colegios.</p>
 </div>
 <div id="procedimiento" class="section level2">
 <h2>Procedimiento</h2>
@@ -2111,10 +2119,10 @@ tradicionales efectos <code>a</code>, <code>b</code> y <code>c&#39;</code>),
 y otro sin estos mediaciones (para obtener regresiones incondicionales).
 Esto permitiría luego comparar los efectos <span class="math inline">\(c\)</span> (incondicionales) con los <span class="math inline">\(c&#39;\)</span> (condicionales), sin embargo, las
 formulas disponibles para hacer esto <span class="citation">(ver
-ecuación 11.6 en MacKinnon 2012)</span> consideran solo un mediador,
-mientras que en nuestro análisis tenemos 4. Por esto, los efectos
-indirectos se presentan con la clásica opción de a*b (efectos no
-estandarizados).</p>
+ecuación 11.6 en <strong>mackinnon2012introduction?</strong>)</span>
+consideran solo un mediador, mientras que en nuestro análisis tenemos 4.
+Por esto, los efectos indirectos se presentan con la clásica opción de
+a*b (efectos no estandarizados).</p>
 <p>El detalle de las variables incluidas en el análisis se encuentra en
 la Tabla 1. Como es costumbre en los análisis de regresión, y ya que su
 escala original era muy amplia, los factores académicos fueron centrados
@@ -2285,9 +2293,10 @@ SECTOR)</li>
 <div id="referencias" class="section level1">
 <h1>Referencias</h1>
 <div id="refs" class="references csl-bib-body hanging-indent">
-<div id="ref-mackinnon2012introduction" class="csl-entry">
-MacKinnon, David P. 2012. <em>Introduction to Statistical Mediation
-Analysis</em>. Routledge.
+<div id="ref-james2013introduction" class="csl-entry">
+James, Gareth, Daniela Witten, Trevor Hastie, and Robert Tibshirani.
+2013. <em>An Introduction to Statistical Learning</em>. Vol. 112.
+Springer.
 </div>
 </div>
 <br>
