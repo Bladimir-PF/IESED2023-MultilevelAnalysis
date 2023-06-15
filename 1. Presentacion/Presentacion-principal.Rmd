@@ -83,87 +83,55 @@ El primer filtro se aplica de cualquier modo a la muestra, ya que el modelo util
 
 La muestra final estuvo constituida por 229.884 postulantes. Sin embargo, para probar la capacidad predictiva del modelo, se utilizó validación cruzada [@james2013introduction], específicamente un conjunto de validación que representa la mitad de la muestra (seleccionada aleatoriamente según colegio [RBD]). En el primer conjunto de datos se estiman los diferentes modelos de interés hasta obtener la versión final, luego, en el conjunto de validación, se ajusta el mismo modelo y se comparan los estadísticos de ajuste.
 
-En particular, el conjunto de entrenamiento estuvo constituido por 114.762 postulantes pertenencientes a 1550 colegios. El conjunto de validación estuvo constituido por 114.231 casos distribuidos en 1550 colegios.  
+En particular, el conjunto de entrenamiento estuvo constituido por 114.762 postulantes pertenencientes a 1550 colegios. El conjunto de validación estuvo constituido por 114.231 casos distribuidos en 1550 colegios.
+
+## Variables
+
+De la base de datos original, se utilizaron:
+
+- RBD
+- Sexo del estudiante
+- Nivel educativo de la madre
+- Nivel educativo del padre
+- Tipo de escuela, Humanista o Técnico
+- Sector de la escuela, Público, Particular Subvencionado o Particular pagado
+- Puntaje Ranking
+- Puntaje PDT Matemática
+
+Estas variables fueron manipuladas para identificar valores perdidos, recategorizar valores, y formar un nuevo conjunto de datos. Además, se utilizaron datos del [Portal de Datos Abiertos](https://datosabiertos.mineduc.cl/) del Ministerio de Educación para fortalecer la contextualización de la experiencia educativa de los estudiantes.
+
+Particularmente, se incluyeron las siguientes variables del establecimiento educacional:
+
+- Territorio, Urbano o Rural
+- Situación de Convenio SEP (Subvención Escolar Preferencial), Si o No
+- Cobro por matrícula o mensualidad, Si o No
+- Situación de Programa PACE, Si o No
+
+Cabe destacar que esta información corresponde a los consolidados 2021 o 2022 según disponibilidad.
 
 ## Procedimiento
 
-En primer lugar, se realizaron análisis descriptivos de los puntajes en los factores académicos de admisión según las variables de caracterización socioeconómicas escogidas.
+En primer lugar, se realizaron análisis descriptivos y correlacionales entre los predictores de interés y el rendimiento en la PDT de Matemática.
 
-Luego, se estimaron dos modelos de senderos en el software Mplus v.8.8, uno con las mediaciones de los factores académicos (estimando los tradicionales efectos `a`, `b` y `c'`), y otro sin estos mediaciones (para obtener regresiones incondicionales). Esto permitiría luego comparar los efectos $c$ (incondicionales) con los $c'$ (condicionales), sin embargo, las formulas disponibles para hacer esto [ver ecuación 11.6 en @mackinnon2012introduction] consideran solo un mediador, mientras que en nuestro análisis tenemos 4. Por esto, los efectos indirectos se presentan con la clásica opción de a*b (efectos no estandarizados).
+Luego, se estimaron varios modelos de regresión. El primero fue un modelo vacío (**empty model**) de dos niveles (varianza residual a nivel 1 y varianza del intercepto aleatorio a nivel 2) con la variable dependiente para estimar el Indice de Correlación Intraclase (ICC) que justifica la utilización de un modelo multinivel. Luego, se estimaron otros modelos nulos para cada predictor de nivel, los cuales ayudan a determinar si es que estas variables tienen varianza significativa a nivel 2, lo cual justificaría la creación de nuevas variables para identificar adecuadamente los efectos de cada predictor en su respectivo nivel. Cada uno de estos modelos nulos fue comparado con su versión simplificada mediante Test de Verosimilitud (Likelihood Ratio Test, o LRT) para decidir si efectos aleatorios eran necesarios.
 
-El detalle de las variables incluidas en el análisis se encuentra en la Tabla 1. Como es costumbre en los análisis de regresión, y ya que su escala original era muy amplia, los factores académicos fueron centrados en los 550 puntos y luego divididos por 100. 
+Para los predictores de nivel 1 que mostraron varianza aleatoria significativa a nivel 2 se crearon nuevos predictores que representaran esta información. Respecto a la parametrización escogida, los modelos fueron estimados con predictores centrados en un estadístico a nivel 1 (en la media del grupo) y en una constante a nivel 2. Esto provoca que los efectos de nivel 1 se interpreten como diferencias entre estudiantes al interior de un mismo colegio y que los efectos de nivel 2 estén representando las diferencias entre colegios. Sin embargo, para este artículo son de interés los efectos contextuales a nivel 2. Estos efectos son el resultado del efecto a nivel 2 menos el efecto a nivel 1 del predictor, los cuales se interpretan como la contribución adicional que tiene el contexto (media del grupo) sobre el valor individual en la estimación del resultado condicional, controlando por los valores individuales dentro del grupo. Los efectos contextuales se calcularon mediante combinaciones lineales.
 
-![](https://github.com/Bladimir-PF/PresentacionIESED2023/blob/main/4.%20Tablas%20y%20figuras/Table%201.png?raw=true)
+Luego de ajustar los primeros modelos multinivel con los respectivos efectos a nivel 1 y nivel 2 de los predictores individuales, se agregaron los predictores a nivel 2. Estos modelos fueron estimados con Máxima Verosimilitud (direct ML) y comparados mediante LRT para escoger la versión con los parámetros que tienen la mayor probabilidad de producir los datos observados en la muestra [@enders2022applied].
 
-*El análisis de senderos es un modelo de regresión lineal múltiple (o logística multinomial) con esteroides (o buen marketing)*. Es un conjunto de regresiones simultáneas que permite revisar si es que en adición al efecto principal entre el predictor (exógeno o endógeno) y la variable dependiente existen efectos indirectos a través de un mediador que no pueden ser capturado por los modelos de regresión convencionales.
+Al tener la versión final con efectos fijos, se estimaron modelos con efectos aleatorios, los cuales fueron estimados utilizando Máxima Verosimilitud Restringida (REML), ya que solo se compararon efectos aleatorios. Para el modelo final se estimaron medidas de pseudo-R^2, total R^2, pendientes pseudo-estandarizadas para los predictores con efectos aleatorios, pendientes estandarizadas para los predictores sin efectos aleatorios, y se incluyeron figuras para mejorar la representación de las estimaciones del modelo.
 
-En nuestro caso, los predictores exógenos son las características socioeconómicas FIRST_G y FAMILY_INCOME, con los factores académicos (NEM, RKG, LANG, MATH) actuando como mediadores. Los modelos se estimaron bajo Máxima Verosimilitud con errores estándar robustos (`MLR`), utilizando una distribución condicional `multinomial` para los residuos y la función de enlace logit generalizado (`generalized logit`).
-
-En síntesis, estamos tratando de estimar algo así:
-
-![Tomado de MacKinnon (2008,p.303)](https://github.com/Bladimir-PF/PresentacionIESED2023/blob/main/4.%20Tablas%20y%20figuras/Figure%203.png?raw=true)
-
-Con un modelo que calcula esto:
-
-![Tomado de https://www.datasklr.com/logistic-regression/multinomial-logistic-regression](https://github.com/Bladimir-PF/PresentacionIESED2023/blob/main/4.%20Tablas%20y%20figuras/Multinomial%20logistic%20regression.png?raw=true)
-
-Y que luce así:
-
-![Hecho en SEMBuilder, STATA](https://github.com/Bladimir-PF/PresentacionIESED2023/blob/main/4.%20Tablas%20y%20figuras/Figure%202.png?raw=true)
-
-El modelo se convertirá en 3 submodelos, cada uno estimando la probabilidad de una categoría K - 1 respecto a K. Por conveniencia, hemos escogido la tercera categoría, postular pero no ser seleccionado/a, como referencia (K). 
+Por último, se estimó el modelo final con efectos fijos y aleatorios en el conjunto de datos de validación y se compararon algunos índices de ajuste entre modelos. 
 
 # Resultados
 
-Como diversas investigaciones han reportado, el nivel de rendimiento en los factores académicos de selección varía entre grupos según variables socioeconómicas.
 
-
-En general, a medida que las condiciones socioeconómicas mejoran, también lo hacen los puntajes promedio en los factores de admisión. Incluso el Ranking de notas muestra este comportamiento disímil entre grupos de estudiantes.
-
-A continuación, se muestran los resultados de los análisis de senderos. En primer lugar, los efectos de los predictores endógenos y exógenos sobre la probabilidad de admisión en el proceso 2022. En la Tabla 2.1 se muestra un modelo donde la referencia de la variable dependiente es *aplicar pero no ser seleccionado/a*, por lo que cada pendiente corresponde al efecto del predictor sobre el logit de la probabilidad de alguna categoría distinta a **K** respecto a **K**.
-
-Por ejemplo, $ADM#1$ está estimando la probabilidad de **no postular** respecto a **postular y no ser seleccionado/a**. De los factores académicos, se puede observar que los puntajes en lenguaje y matemáticas son especialmente relevantes en la decisión de postular, mientras que a medida que los ingresos económicos percápita de la familia incrementan, se vuelve más probable no postular que postular y arriesgarse a no ser seleccionado/a.
-
-![](https://github.com/Bladimir-PF/PresentacionIESED2023/blob/main/4.%20Tablas%20y%20figuras/Results%20-%20app%20status.png?raw=true)
-
-Por otro lado, $ADM#3$ está estimando la probabilidad de **postular y ser seleccionado/a** versus **postular y no ser seleccionado/a**. En este submodelo, los factores académicos juegan un rol positivo, como es de esperar, incrementando la probabilidad de admisión. En cuanto a los predictores socioeconómicos, ser estudiante primera generación se traduce en una desventaja no significativa para la selección, mientras que  provenir de una familia del primer quintil de ingresos económicos percápita sí es una desventaja estadísticamente significativa.
-
-Lo interesante de la Tabla 2.1 es que los efectos de los predictores exógenos (los conocidos efectos `c'`) corresponden a las pendientes de regresión, o comparación entre grupos, ajustadas por los factores académicos. Es decir, que estiman el efecto de los atributos socioeconómicos y la admisión luego de remover el efecto o relación que existe entre los factores académicos y las diferentes resultados de aplicación. Esto es importante, especialmente en ADM#3 y el rol del quintil económico de ingresos, ya que permite identificar mejor el efecto de los predictores sobre la probabilidad de admisión.
-
-Ahora, en términos de rendimiento en los factores académicos, se observan similares resultados a los vistos en los gráficos de caja anteriormente. En general, los estudiantes primera generación alcanzarían, en promedio, entre 30 y 50 puntos menos que los estudiantes con algún padre/madre que llegó a la educación superior. En cuanto al efecto de los ingresos percápita de las familias, las diferencias entre estudiantes de primer y quinto quintil son especialmente notorias, con brechas estimadas de entre 40 y 46 puntos en promedio en lenguaje y matemáticas respectivamente.
-
-![](https://github.com/Bladimir-PF/PresentacionIESED2023/blob/main/4.%20Tablas%20y%20figuras/Results%20-%20predicted%20achievement%20in%20the%20academic%20factors.png?raw=true)
-
-Algo común en los análisis de senderos es la prueba de los efectos indirectos, donde un modelo con variables observadas continuas arroja similares resultados entre las opciones de `c - c'` y `a * b`, sin embargo, debido a que las regresiones `a` son lineales y las `b` logísticas, ambas alternativas no son comparables. Esto ha llevado a una serie de debates metodológicos que no puedo cubrir aquí pero que pueden leer en los trabajos de la carpeta [2. Lecturas recomendadas](https://github.com/Bladimir-PF/PresentacionIESED2023/tree/main/2.%20Lecturas%20recomendadas). Una opción es calcular `c corregido` para luego ser comparados con `c'`, aunque para esto se requiere `b^2`, pero en nuestro caso tenemos 4 effectos b, por lo que esto debe revisarse.
-
-![Tomado de MacKinnon (2008,p.307)](https://github.com/Bladimir-PF/PresentacionIESED2023/blob/main/4.%20Tablas%20y%20figuras/c%20corrected.png?raw=true)
-
-Tendiendo esto en consideración, la Tabla 3 muestra los efectos indirectos del modelo (a * b sin estandarizar), la mayoría de los cuales resulta significativo. A diferencia de los resultados anteriores, la interpretación de estos coeficientes no es sencilla, pues tanto los números como su dirección no se pueden interpretar directamente debido a cómo fueron calculadas. Lo que sí podemos decir sobre estos efectos es que muestran el triple rol de las variables socioeconómicas en el proceso de admisión:
-
-1. sobre la situación de las postulaciones aun controlando por los factores académicos (`c'`)
-2. sobre los niveles de rendimiento en los factores académicos (`a`)
-3. sobre la situación de postulación a través de cada uno de los factores académicos (`a*b`)
-
-![](https://github.com/Bladimir-PF/PresentacionIESED2023/blob/main/4.%20Tablas%20y%20figuras/results%20-%20indirect%20effects.png?raw=true)
-
-Por último, el modelo también provee los R^2 de los factores académicos, los cuales pese a parecer pequeños, no debemos olvidar que solo consideran dos variables socioeconómicas. Especialmente para el caso de los exámenes de admisión, los predictores exógenos alcanzan a explicar aproximadamente un 10% de su varianza.
-
-![](https://github.com/Bladimir-PF/PresentacionIESED2023/blob/main/4.%20Tablas%20y%20figuras/Results%20-%20rsquare's.png?raw=true)
 
 # Conclusiones (preliminares)
 
-- Hay un gran contingente de estudiantes que decide no postular a los programas selectivos, entre los cuales sería importante conocer las razones y si el próximo año participan y cuáles son sus preferencias. Hasta ahora, según los resultados, las probabilidades de no postular incrementan entre los estudiantes de familias de mayores quintiles de ingresos percápita en lugar de postular y no ser seleccionado/a.
 
-- Los factores académicos, en especial los exámenes de admisión, tienen un rol positivo sobre la probabilidad de postular y de admisión.
-
-- Los predictores socioeconómicos fueron significativamente estadísticos en la mayoría de análisis bivariados y multivariantes, incrementando los niveles de rendimiento promedio y las probabilidades de selección cuanto más favorable el nivel de ingresos percápita de la familia y los recursos educativos del padre y/o la madre.
 
 # Cosas por revisar
 
-- cómo corregir los errores estandar de las variables a nivel 2 si es que son agregadas como predictores
-- colinearidad con y sin ranking
-- khb in stata (Average partial effect) / in r is margins
-- estandarizacion del ranking con las tablas del DEMRE
-- incluir variables de nivel 2 como grupo de comparacion (grouping = SECTOR)
 
 # Referencias
