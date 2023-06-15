@@ -125,6 +125,17 @@ Por último, se estimó el modelo final con efectos fijos y aleatorios en el con
 
 # Resultados
 
+En términos descriptivos, se observan diferencias entre las distribuciones de los puntajes en la PDT Matemática según atributos individuales y del colegio. En la Figura 1 se puede observar una tendencia en las diferencias, donde los puntajes promedio incrementan a medida que las características socioeconómicas mejoran.
+
+La línea vertical roja representa la media de rendimiento entre los estudiantes de la muestra (500,563, sd = 109.435; según el DEMRE, los puntajes PDT se calculan con una función de densidad acumulada Normal(µ=500,σ=110)). Con este valor como referencia, se puede observar que las mujeres obtuvieron mejores puntajes promedio que los hombres. Mientras que los estudiantes de quintiles 2 a 4 alcanzaron puntajes promedio, los quintiles 1 y 5 se diferencian notablemente a favor de los últimos. La educación del padre y la madre mostró diferencias en rendimiento a favor de estudiantes cuyo padre y/o madre alcanzó la educación superior.
+
+Respecto a las variables de escuela, quienes asistieron a establecimientos Humanistas obtuvieron un rendimiento promedio mejor que sus pares de colegios técnicos. Los estudiantes de colegios rurales tuvieron un rendimiento promedio por debajo de la media general, al igual que los egresados de colegios con alguna forma de copago. Los estudiantes de colegios con SEP no lograron superar la media general, mientras que los egresados de colegios PACE fueron el grupo con menor rendimiento promedio en la PDT de Matemática. Finalmente, los estudiantes de colegios particulares privados, pese a su baja representación (11.690% de la muestra), alcanzaron la media más alta en la muestra (media = 602,634, sd = 109,600).
+
+**Figura 1**
+
+*Rendimiento en la PDT de Matemática según variables de caracterización*
+
+![Elaboración propia con datos del proceso de admisión 2022](https://github.com/Bladimir-PF/IESED2023-MultilevelAnalysis/blob/main/4.%20Tablas%20y%20figuras/means.png?raw=true)
 
 
 # Conclusiones (preliminares)
