@@ -1,0 +1,388 @@
+------------------------------------------------------------------------------------------------------------------------------------------------------
+      name:  STATA_Example2a
+       log:  C:\Dropbox\19_PSQF7375_Clustered\PSQF7375_Clustered_Example2\STATA_Example2a_Output.log
+  log type:  text
+ opened on:  31 Jul 2019, 10:21:55
+
+. 
+. display as result "Chapter 2: Descriptive Statistics for Example Variables"
+Chapter 2: Descriptive Statistics for Example Variables
+
+. format age grip cognition %4.2f
+
+. summarize age grip cognition, format
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+         age |        550       84.93        3.43      80.02      96.97
+        grip |        550        9.11        2.98       0.00      19.00
+   cognition |        550       24.82       10.99       0.00      44.00
+
+. tabulate sexmw demgroup, cell
+
++-----------------+
+| Key             |
+|-----------------|
+|    frequency    |
+| cell percentage |
++-----------------+
+
+sexmw: Sex |
+   (0=Men, |     Dementia Group 1N 2F 3C
+  1=Women) |     1None    2Future   3Current |     Total
+-----------+---------------------------------+----------
+      0Men |       168         40         19 |       227 
+           |     30.55       7.27       3.45 |     41.27 
+-----------+---------------------------------+----------
+    1Women |       231         69         23 |       323 
+           |     42.00      12.55       4.18 |     58.73 
+-----------+---------------------------------+----------
+     Total |       399        109         42 |       550 
+           |     72.55      19.82       7.64 |    100.00 
+
+. 
+. display as result "Eq 2.3: Empty Means Model"
+Eq 2.3: Empty Means Model
+
+. mixed cognition , /// 
+>       variance reml dfmethod(residual) 
+
+Computing degrees of freedom:
+
+Mixed-effects REML regression                   Number of obs     =        550
+DF method: Residual                             DF:           min =     549.00
+                                                              avg =     549.00
+                                                              max =     549.00
+
+                                                F(0,   549.00)    =          .
+Log restricted-likelihood = -2098.0488          Prob > F          =          .
+
+------------------------------------------------------------------------------
+   cognition |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+       _cons |   24.82182   .4685737    52.97   0.000      23.9014    25.74223
+------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------
+  Random-effects Parameters  |   Estimate   Std. Err.     [95% Conf. Interval]
+-----------------------------+------------------------------------------------
+               var(Residual) |   120.7587   7.282025      107.2974    135.9089
+------------------------------------------------------------------------------
+
+. 
+. display as result "Eq 2.7: Age + Grip + Sex (0=M 1=W, as continuous predictor)"
+Eq 2.7: Age + Grip + Sex (0=M 1=W, as continuous predictor)
+
+. mixed cognition c.age85 c.grip9 c.sexmw, ///
+>                   variance reml dfmethod(residual),
+
+Computing degrees of freedom:
+
+Mixed-effects REML regression                   Number of obs     =        550
+DF method: Residual                             DF:           min =     546.00
+                                                              avg =     546.00
+                                                              max =     546.00
+
+                                                F(3,   546.00)    =      20.04
+Log restricted-likelihood = -2070.5586          Prob > F          =     0.0000
+
+------------------------------------------------------------------------------
+   cognition |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+       age85 |  -.4337719   .1324638    -3.27   0.001    -.6939729   -.1735709
+       grip9 |   .5460019   .1662766     3.28   0.001     .2193818    .8726221
+       sexmw |   -3.79878   .9903591    -3.84   0.000    -5.744161   -1.853399
+       _cons |   26.95943   .7388729    36.49   0.000     25.50805    28.41081
+------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------
+  Random-effects Parameters  |   Estimate   Std. Err.     [95% Conf. Interval]
+-----------------------------+------------------------------------------------
+               var(Residual) |   109.3807   6.595904       97.1877    123.1034
+------------------------------------------------------------------------------
+
+.           predict predagegripsex, xb            
+
+.           corr cognition predagegripsex  
+(obs=550)
+
+             | cognit~n predag~x
+-------------+------------------
+   cognition |   1.0000
+predagegri~x |   0.3149   1.0000
+
+
+.       display as result r(rho)^2
+.09917075
+
+.           
+. display as result "Eq 2.8: Adding Dementia Group"
+Eq 2.8: Adding Dementia Group
+
+. display as result "Using Manual Group Contrasts so Reference=None"
+Using Manual Group Contrasts so Reference=None
+
+. mixed cognition c.age85 c.grip9 c.sexmw c.demnf c.demnc, ///
+>                 variance reml dfmethod(residual),
+
+Computing degrees of freedom:
+
+Mixed-effects REML regression                   Number of obs     =        550
+DF method: Residual                             DF:           min =     544.00
+                                                              avg =     544.00
+                                                              max =     544.00
+
+                                                F(5,   544.00)    =      41.75
+Log restricted-likelihood = -2008.1345          Prob > F          =     0.0000
+
+------------------------------------------------------------------------------
+   cognition |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+       age85 |   -.405734   .1188972    -3.41   0.001    -.6392878   -.1721802
+       grip9 |   .6042256   .1497757     4.03   0.000      .310016    .8984351
+       sexmw |  -3.657374   .8914326    -4.10   0.000    -5.408446   -1.906303
+       demnf |  -5.721971   1.019078    -5.61   0.000    -7.723782    -3.72016
+       demnc |  -16.47981   1.522754   -10.82   0.000    -19.47101   -13.48862
+       _cons |   29.26433   .6985079    41.90   0.000     27.89222    30.63643
+------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------
+  Random-effects Parameters  |   Estimate   Std. Err.     [95% Conf. Interval]
+-----------------------------+------------------------------------------------
+               var(Residual) |   88.07088   5.310874      78.25335     99.1201
+------------------------------------------------------------------------------
+
+.       test (c.demnf=0) (c.demnc=0), small // Omnibus Dementia Group Test - change in R2
+
+ ( 1)  [cognition]demnf = 0
+ ( 2)  [cognition]demnc = 0
+
+       F(  2,544.00) =   67.06
+            Prob > F =    0.0000
+
+.       predict predagegripsexdem, xb             
+
+.       corr cognition predagegripsexdem  
+(obs=550)
+
+             | cognit~n predag~m
+-------------+------------------
+   cognition |   1.0000
+predagegri~m |   0.5266   1.0000
+
+
+.       display as result r(rho)^2
+.27732941
+
+.  lincom _cons*1 + c.demnf*0 + c.demnc*0,   small // Intercept for None Group = B0
+
+ ( 1)  [cognition]_cons = 0
+
+------------------------------------------------------------------------------
+   cognition |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         (1) |   29.26433   .6985079    41.90   0.000     27.89222    30.63643
+------------------------------------------------------------------------------
+
+.  lincom _cons*1 + c.demnf*1 + c.demnc*0,   small // Intercept for Future Group = B0+B4
+
+ ( 1)  [cognition]demnf + [cognition]_cons = 0
+
+------------------------------------------------------------------------------
+   cognition |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         (1) |   23.54235    1.07853    21.83   0.000     21.42376    25.66095
+------------------------------------------------------------------------------
+
+.  lincom _cons*1 + c.demnf*0 + c.demnc*1,   small // Intercept for Current Group = B0+B5
+
+ ( 1)  [cognition]demnc + [cognition]_cons = 0
+
+------------------------------------------------------------------------------
+   cognition |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         (1) |   12.78451   1.530193     8.35   0.000     9.778701    15.79032
+------------------------------------------------------------------------------
+
+.  lincom _cons*1 + c.demnf*.5 + c.demnc*.5, small // Intercept for Ever Group = B0+(B4+B5)/2
+
+ ( 1)  .5*[cognition]demnf + .5*[cognition]demnc + [cognition]_cons = 0
+
+------------------------------------------------------------------------------
+   cognition |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         (1) |   18.16343   1.011474    17.96   0.000     16.17656    20.15031
+------------------------------------------------------------------------------
+
+.  lincom c.demnf*1  + c.demnc*0,  small // None vs Future = B4
+
+ ( 1)  [cognition]demnf = 0
+
+------------------------------------------------------------------------------
+   cognition |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         (1) |  -5.721971   1.019078    -5.61   0.000    -7.723782    -3.72016
+------------------------------------------------------------------------------
+
+.  lincom c.demnf*0  + c.demnc*1,  small // None vs Current = B5
+
+ ( 1)  [cognition]demnc = 0
+
+------------------------------------------------------------------------------
+   cognition |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         (1) |  -16.47981   1.522754   -10.82   0.000    -19.47101   -13.48862
+------------------------------------------------------------------------------
+
+.  lincom c.demnf*-1 + c.demnc*1,  small // Future vs Current = B5-B4
+
+ ( 1)  - [cognition]demnf + [cognition]demnc = 0
+
+------------------------------------------------------------------------------
+   cognition |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         (1) |  -10.75784   1.707957    -6.30   0.000    -14.11284   -7.402844
+------------------------------------------------------------------------------
+
+.  lincom c.demnf*.5 + c.demnc*.5, small // None vs Ever = (B4+B5)/2
+
+ ( 1)  .5*[cognition]demnf + .5*[cognition]demnc = 0
+
+------------------------------------------------------------------------------
+   cognition |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         (1) |  -11.10089   .9743564   -11.39   0.000    -13.01485    -9.18693
+------------------------------------------------------------------------------
+
+. 
+. display as result "Eq 2.8: Adding Dementia Group"
+Eq 2.8: Adding Dementia Group
+
+. display as result "Categorical Predictor for Dementia Group"
+Categorical Predictor for Dementia Group
+
+. mixed cognition c.age85 c.grip9 c.sexmw ib(last).demgroup, ///
+>                   variance reml dfmethod(residual),
+
+Computing degrees of freedom:
+
+Mixed-effects REML regression                   Number of obs     =        550
+DF method: Residual                             DF:           min =     544.00
+                                                              avg =     544.00
+                                                              max =     544.00
+
+                                                F(5,   544.00)    =      41.75
+Log restricted-likelihood = -2008.1345          Prob > F          =     0.0000
+
+------------------------------------------------------------------------------
+   cognition |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+       age85 |   -.405734   .1188972    -3.41   0.001    -.6392878   -.1721802
+       grip9 |   .6042256   .1497757     4.03   0.000      .310016    .8984351
+       sexmw |  -3.657374   .8914326    -4.10   0.000    -5.408446   -1.906303
+             |
+    demgroup |
+      1None  |   16.47981   1.522754    10.82   0.000     13.48862    19.47101
+    2Future  |   10.75784   1.707957     6.30   0.000     7.402844    14.11284
+             |
+       _cons |   12.78451   1.530193     8.35   0.000     9.778701    15.79032
+------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------
+  Random-effects Parameters  |   Estimate   Std. Err.     [95% Conf. Interval]
+-----------------------------+------------------------------------------------
+               var(Residual) |   88.07088   5.310874      78.25335     99.1201
+------------------------------------------------------------------------------
+
+.       contrast i.demgroup, small 
+
+Contrasts of marginal linear predictions
+
+Margins      : asbalanced
+
+-----------------------------------------------------------
+             |         df        ddf           F        P>F
+-------------+---------------------------------------------
+cognition    |
+    demgroup |          2     544.00       67.06     0.0000
+-----------------------------------------------------------
+
+.       margins  i.demgroup, at(c.age85=0 c.grip9=0 c.sexmw=0) df(544)
+
+Adjusted predictions                            Number of obs     =        550
+
+Expression   : Linear prediction, fixed portion, predict()
+at           : age85           =           0
+               grip9           =           0
+               sexmw           =           0
+
+------------------------------------------------------------------------------
+             |            Delta-method
+             |     Margin   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+    demgroup |
+      1None  |   29.26433   .6985079    41.90   0.000     27.89222    30.63643
+    2Future  |   23.54235    1.07853    21.83   0.000     21.42376    25.66095
+   3Current  |   12.78451   1.530193     8.35   0.000     9.778701    15.79032
+------------------------------------------------------------------------------
+
+.           margins  i.demgroup, df(544)
+
+Predictive margins                              Number of obs     =        550
+
+Expression   : Linear prediction, fixed portion, predict()
+
+------------------------------------------------------------------------------
+             |            Delta-method
+             |     Margin   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+    demgroup |
+      1None  |   27.21427   .4702141    57.88   0.000     26.29061    28.13792
+    2Future  |    21.4923    .902428    23.82   0.000     19.71963    23.26497
+   3Current  |   10.73445   1.448621     7.41   0.000     7.888878    13.58003
+------------------------------------------------------------------------------
+
+.       margins  i.demgroup, pwcompare(pveffects) df(544)
+
+Pairwise comparisons of predictive margins
+
+Expression   : Linear prediction, fixed portion, predict()
+
+-------------------------------------------------------------
+                     |            Delta-method    Unadjusted
+                     |   Contrast   Std. Err.      t    P>|t|
+---------------------+---------------------------------------
+            demgroup |
+   2Future vs 1None  |  -5.721971   1.019078    -5.61   0.000
+  3Current vs 1None  |  -16.47981   1.522754   -10.82   0.000
+3Current vs 2Future  |  -10.75784   1.707957    -6.30   0.000
+-------------------------------------------------------------
+
+. lincom _cons*1 + 1.demgroup*0  + 2.demgroup*.5 + 3.demgroup*.5, small // Intercept Ever = (B0+B5)/2 
+
+ ( 1)  .5*[cognition]2.demgroup + .5*[cognition]3b.demgroup + [cognition]_cons = 0
+
+------------------------------------------------------------------------------
+   cognition |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         (1) |   18.16343   1.011474    17.96   0.000     16.17656    20.15031
+------------------------------------------------------------------------------
+
+. lincom           1.demgroup*-1 + 2.demgroup*.5 + 3.demgroup*.5, small // None vs Ever = (B0+B5)/2 -B4
+
+ ( 1)  - [cognition]1.demgroup + .5*[cognition]2.demgroup + .5*[cognition]3b.demgroup = 0
+
+------------------------------------------------------------------------------
+   cognition |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         (1) |  -11.10089   .9743564   -11.39   0.000    -13.01485    -9.18693
+------------------------------------------------------------------------------
+
+. 
+. * Close log
+. log close STATA_Example2a
+      name:  STATA_Example2a
+       log:  C:\Dropbox\19_PSQF7375_Clustered\PSQF7375_Clustered_Example2\STATA_Example2a_Output.log
+  log type:  text
+ closed on:  31 Jul 2019, 10:21:56
+------------------------------------------------------------------------------------------------------------------------------------------------------

@@ -1,0 +1,1213 @@
+NOTE: PROCEDURE PRINTTO used (Total process time):
+      real time           3.18 seconds
+      cpu time            0.59 seconds
+      
+
+46   
+47   * Import data into work library;
+48   DATA work.grade10; SET example.grade10school;
+49        LABEL studentID= "studentID: Student ID number"
+50              schoolID=  "schoolID: School ID number"
+51              frlunch=   "frlunch: 0=No, 1=Free/Reduced Lunch"
+52              math=      "math: Math Test Score Outcome";
+53        * Selecting cases that are complete for analysis variables;
+54        IF NMISS(studentID, schoolID, frlunch, math)>0 THEN DELETE; RUN;
+
+NOTE: There were 15826 observations read from the data set EXAMPLE.GRADE10SCHOOL.
+NOTE: The data set WORK.GRADE10 has 15826 observations and 10 variables.
+NOTE: DATA statement used (Total process time):
+      real time           0.15 seconds
+      cpu time            0.01 seconds
+      
+
+55   
+56   * Get school means;
+57   PROC SORT DATA=work.grade10; BY schoolID studentID; RUN;
+
+NOTE: There were 15826 observations read from the data set WORK.GRADE10.
+NOTE: The data set WORK.GRADE10 has 15826 observations and 10 variables.
+NOTE: PROCEDURE SORT used (Total process time):
+      real time           0.10 seconds
+      cpu time            0.01 seconds
+      
+
+58   PROC MEANS NOPRINT N DATA=work.grade10;
+59        BY schoolID; VAR frlunch math;
+60        OUTPUT OUT=work.SchoolMeans MEAN(frlunch math)= SMfrlunch SMmath; RUN;
+
+NOTE: There were 15826 observations read from the data set WORK.GRADE10.
+NOTE: The data set WORK.SCHOOLMEANS has 381 observations and 5 variables.
+NOTE: PROCEDURE MEANS used (Total process time):
+      real time           0.15 seconds
+      cpu time            0.01 seconds
+      
+
+61   
+62   * Label new school mean variables;
+63   DATA work.SchoolMeans; SET work.SchoolMeans;
+64        Nperschool = _FREQ_; * Saving N per school;
+65        DROP _TYPE_ _FREQ_;  * Dropping unneeded SAS-created variables;
+66        LABEL Nperschool= "Nperschool: # Students Contributing Data"
+67              SMfrlunch=  "SMfrlunch: School Mean 0=No, 1=Free/Reduced Lunch"
+68              SMmath=     "SMmath: School Mean Math Outcome";
+69        * Arbitrarily select only schools with at least 30 students;
+70        IF Nperschool < 31 THEN DELETE;
+71   RUN;
+
+NOTE: There were 381 observations read from the data set WORK.SCHOOLMEANS.
+NOTE: The data set WORK.SCHOOLMEANS has 94 observations and 4 variables.
+NOTE: DATA statement used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+
+72   
+73   * Merge school means back with individual data;
+74   DATA work.grade10; MERGE work.grade10 work.SchoolMeans; BY schoolID;
+75        * Arbitrarily select only schools with at least 30 students;
+76        IF Nperschool < 31 THEN DELETE;
+77        * Center math predictors;
+78        WSmath = (math - SMmath)/10;
+79        LABEL WSmath= "WSmath: Within-School Math (0=SM)";
+80        SMmath50 = (SMmath - 50)/10;
+81        LABEL SMmath50= "SMmath50: School Mean Math (0=5)"; RUN;
+
+NOTE: There were 15826 observations read from the data set WORK.GRADE10.
+NOTE: There were 94 observations read from the data set WORK.SCHOOLMEANS.
+NOTE: The data set WORK.GRADE10 has 13082 observations and 15 variables.
+NOTE: DATA statement used (Total process time):
+      real time           0.01 seconds
+      cpu time            0.01 seconds
+      
+
+82   
+83   TITLE "School-Level Descriptives";
+84   PROC MEANS NDEC=2 DATA=work.SchoolMeans;
+85        VAR Nperschool SMmath SMfrlunch; RUN;
+
+ 
+                                                                                                                                                                                                                                                                
+ 
+School-Level Descriptives
+
+The MEANS Procedure
+
+Variable      Label                                                 N            Mean         Std Dev         Minimum         Maximum
+ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
+Nperschool    Nperschool: # Students Contributing Data             94          139.17          138.20           31.00          515.00
+SMmath        SMmath: School Mean Math Outcome                     94           47.73            6.97           29.45           61.61
+SMfrlunch     SMfrlunch: School Mean 0=No, 1=Free/Reduced Lunch    94            0.30            0.21            0.00            0.80
+ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
+NOTE: There were 94 observations read from the data set WORK.SCHOOLMEANS.
+NOTE: PROCEDURE MEANS used (Total process time):
+      real time           0.03 seconds
+      cpu time            0.03 seconds
+      
+
+85 !                                            TITLE;
+86   
+87   TITLE "Student-Level Descriptives";
+88   PROC MEANS NDEC=2 DATA=work.grade10;
+89        VAR math frlunch; RUN;
+
+ 
+                                                                                                                                                                                                                                                                
+ 
+Student-Level Descriptives
+
+The MEANS Procedure
+
+Variable    Label                                      N            Mean         Std Dev         Minimum         Maximum
+ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
+math        math: Math Test Score Outcome          13082           48.12           17.26            0.00           83.00
+frlunch     frlunch: 0=No, 1=Free/Reduced Lunch    13082            0.31            0.46            0.00            1.00
+ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
+NOTE: There were 13082 observations read from the data set WORK.GRADE10.
+NOTE: PROCEDURE MEANS used (Total process time):
+      real time           0.03 seconds
+      cpu time            0.01 seconds
+      
+
+89 !                             TITLE;
+90   
+91   
+92   ***********************************************************************************;
+93   *******                    BEGIN ANALYSES FOR EXAMPLE 5A                    *******;
+94   ***********************************************************************************;
+95   
+96   TITLE "SAS Model 1: Empty Means, Single-Level Logistic Model for Student Free/Reduced Lunch";
+97   PROC GLIMMIX DATA=work.grade10 NOCLPRINT NAMELEN=100 METHOD=QUAD(QPOINTS=15) GRADIENT;
+98        CLASS schoolID;
+99        * Descending makes us predict the 1 instead of the 0;
+100       MODEL frlunch (DESCENDING) =  / SOLUTION LINK=LOGIT DIST=BINARY DDFM=Satterthwaite;
+101       ESTIMATE "Intercept" intercept 1 / ILINK; * ILINK is inverse link (to un-logit);
+102  RUN;
+
+
+102!      TITLE;
+
+
+
+ 
+                                                                                                                                                                                                                                                                
+ 
+SAS Model 1: Empty Means, Single-Level Logistic Model for Student Free/Reduced Lunch
+
+The GLIMMIX Procedure
+
+               Model Information
+
+Data Set                     WORK.GRADE10      
+Response Variable            frlunch           
+Response Distribution        Binary            
+Link Function                Logit             
+Variance Function            Default           
+Variance Matrix              Diagonal          
+Estimation Technique         Maximum Likelihood
+Degrees of Freedom Method    Residual          
+
+
+Number of Observations Read       13082
+Number of Observations Used       13082
+
+
+           Response Profile
+ 
+ Ordered                        Total
+   Value    frlunch         Frequency
+
+       1    1                    4023
+       2    0                    9059
+
+The GLIMMIX procedure is modeling the probability that frlunch='1'.
+NOTE: The GLIMMIX procedure is modeling the probability that frlunch='1'.
+
+
+           Dimensions
+
+Columns in X                   1
+Columns in Z                   0
+Subjects (Blocks in V)         1
+Max Obs per Subject        13082
+
+
+          Optimization Information
+
+Optimization Technique        Newton-Raphson
+Parameters in Optimization    1             
+Lower Boundaries              0             
+Upper Boundaries              0             
+Fixed Effects                 Not Profiled  
+
+
+                                Iteration History
+ 
+                                           Objective                         Max
+Iteration    Restarts    Evaluations        Function          Change    Gradient
+
+        0           0              4    8094.1725271       .            338.1936
+        1           0              3    8072.9621811     21.21034603    9.218882
+        2           0              3    8072.9469405      0.01524060    0.005848
+        3           0              3    8072.9469405      0.00000001    2.155E-9
+NOTE: Convergence criterion (GCONV=1E-8) satisfied.
+
+         Convergence criterion (GCONV=1E-8) satisfied.          
+
+
+           Fit Statistics
+
+-2 Log Likelihood           16145.89
+AIC  (smaller is better)    16147.89
+AICC (smaller is better)    16147.89
+BIC  (smaller is better)    16155.37
+CAIC (smaller is better)    16156.37
+HQIC (smaller is better)    16150.39
+Pearson Chi-Square          13082.00
+Pearson Chi-Square / DF         1.00
+
+
+                             Parameter Estimates
+ 
+                         Standard
+Effect       Estimate       Error       DF    t Value    Pr > |t|    Gradient
+
+Intercept     -0.8117     0.01895    13081     -42.84      <.0001    2.155E-9
+
+
+
+
+                                        Estimates
+ 
+                                                                                 Standard
+                         Standard                                                   Error
+Label        Estimate       Error       DF    t Value    Pr > |t|        Mean        Mean
+
+Intercept     -0.8117     0.01895    13081     -42.84      <.0001      0.3075    0.004035
+NOTE: PROCEDURE GLIMMIX used (Total process time):
+      real time           1.08 seconds
+      cpu time            0.15 seconds
+      
+
+103  
+104  TITLE "SAS Model 2: Empty Means, Two-Level Logistic Model for Student Free/Reduced Lunch";
+105  PROC GLIMMIX DATA=work.grade10 NOCLPRINT NAMELEN=100 METHOD=QUAD(QPOINTS=15) GRADIENT;
+106       CLASS schoolID;
+107       MODEL frlunch (DESCENDING) =  / SOLUTION LINK=LOGIT DIST=BINARY DDFM=BW;
+108       RANDOM INTERCEPT / TYPE=UN SUBJECT=schoolID;
+109       ESTIMATE "Intercept" intercept 1 / ILINK; * ILINK is inverse link (to un-logit);
+110       COVTEST "Random School Intercept?" 0;     * Test if G matrix (1,1)=0;
+111       ODS OUTPUT CovParms=CovEmpty;             * Save random int var for pseudo-R2;
+112  RUN;
+
+
+112!      TITLE;
+
+
+
+ 
+                                                                                                                                                                                                                                                                
+ 
+SAS Model 2: Empty Means, Two-Level Logistic Model for Student Free/Reduced Lunch
+
+The GLIMMIX Procedure
+
+                  Model Information
+
+Data Set                      WORK.GRADE10            
+Response Variable             frlunch                 
+Response Distribution         Binary                  
+Link Function                 Logit                   
+Variance Function             Default                 
+Variance Matrix Blocked By    schoolID                
+Estimation Technique          Maximum Likelihood      
+Likelihood Approximation      Gauss-Hermite Quadrature
+Degrees of Freedom Method     Between-Within          
+
+
+Number of Observations Read       13082
+Number of Observations Used       13082
+
+
+           Response Profile
+ 
+ Ordered                        Total
+   Value    frlunch         Frequency
+
+       1    1                    4023
+       2    0                    9059
+
+The GLIMMIX procedure is modeling the probability that frlunch='1'.
+NOTE: The GLIMMIX procedure is modeling the probability that frlunch='1'.
+
+
+            Dimensions
+
+G-side Cov. Parameters           1
+Columns in X                     1
+Columns in Z per Subject         1
+Subjects (Blocks in V)          94
+Max Obs per Subject            515
+
+
+           Optimization Information
+
+Optimization Technique        Dual Quasi-Newton
+Parameters in Optimization    2                
+Lower Boundaries              1                
+Upper Boundaries              0                
+Fixed Effects                 Not Profiled     
+Starting From                 GLM estimates    
+Quadrature Points             15               
+
+
+                                Iteration History
+ 
+                                           Objective                         Max
+Iteration    Restarts    Evaluations        Function          Change    Gradient
+
+        0           0              4    13194.007517       .            50.00994
+        1           0              2    13175.399245     18.60827226    17.03229
+        2           0              3    13173.512419      1.88682572    12.85945
+        3           0              2     13172.50464      1.00777981    3.628052
+        4           0              2    13172.434085      0.07055447    0.383639
+        5           0              4     13172.43095      0.00313516    0.374031
+        6           0              3    13172.430182      0.00076788    0.024643
+        7           0              3    13172.430165      0.00001679    0.000164
+NOTE: Convergence criterion (GCONV=1E-8) satisfied.
+
+         Convergence criterion (GCONV=1E-8) satisfied.          
+
+
+           Fit Statistics
+
+-2 Log Likelihood           13172.43
+AIC  (smaller is better)    13176.43
+AICC (smaller is better)    13176.43
+BIC  (smaller is better)    13181.52
+CAIC (smaller is better)    13183.52
+HQIC (smaller is better)    13178.48
+
+
+      Fit Statistics for Conditional
+               Distribution
+
+-2 log L(frlunch | r. effects)    12782.39
+Pearson Chi-Square                11971.10
+Pearson Chi-Square / DF               0.92
+
+
+            Covariance Parameter Estimates
+ 
+Cov                                Standard
+Parm       Subject     Estimate       Error    Gradient
+
+UN(1,1)    schoolID      1.9545      0.3315    0.000164
+
+
+                         Solutions for Fixed Effects
+ 
+                         Standard
+Effect       Estimate       Error       DF    t Value    Pr > |t|    Gradient
+
+Intercept     -1.1721      0.1494       93      -7.85      <.0001    0.000085
+
+
+
+
+                                        Estimates
+ 
+                                                                                 Standard
+                         Standard                                                   Error
+Label        Estimate       Error       DF    t Value    Pr > |t|        Mean        Mean
+
+Intercept     -1.1721      0.1494       93      -7.85      <.0001      0.2365     0.02697
+
+
+                         Tests of Covariance Parameters
+                            Based on the Likelihood
+ 
+Label                         DF    -2 Log Like      ChiSq    Pr > ChiSq    Note
+
+Random School Intercept?       1          16146    2973.46        <.0001    MI  
+
+MI: P-value based on a mixture of chi-squares.
+NOTE: The data set WORK.COVEMPTY has 1 observations and 5 variables.
+NOTE: PROCEDURE GLIMMIX used (Total process time):
+      real time           2.44 seconds
+      cpu time            2.42 seconds
+      
+
+113  
+114  TITLE "SAS Model 3: Add Level-2 Fixed Effect of School Mean Math";
+115  PROC GLIMMIX DATA=work.grade10 NOCLPRINT NAMELEN=100 METHOD=QUAD(QPOINTS=15) GRADIENT;
+116       CLASS schoolID;
+117       MODEL frlunch (DESCENDING) = SMmath50 / SOLUTION LINK=LOGIT DIST=BINARY DDFM=BW ODDSRATIO;
+118       RANDOM INTERCEPT / TYPE=UN SUBJECT=schoolID;
+119       ESTIMATE "Intercept if SMmath=49"  intercept 1 SMmath50 -1 / ILINK;
+120       ESTIMATE "Intercept if SMmath=50"  intercept 1 SMmath50  0 / ILINK;
+121       ESTIMATE "Intercept if SMmath=51"  intercept 1 SMmath50  1 / ILINK;
+122       ESTIMATE "L2 Math Slope"           SMmath50 1 / ILINK; * Example of non-sense ILINK;
+123       ODS OUTPUT CovParms=CovSMmath;     * Save random int var for pseudo-R2;
+124  RUN;
+
+
+124!      TITLE;
+
+
+
+ 
+                                                                                                                                                                                                                                                                
+ 
+SAS Model 3: Add Level-2 Fixed Effect of School Mean Math
+
+The GLIMMIX Procedure
+
+                  Model Information
+
+Data Set                      WORK.GRADE10            
+Response Variable             frlunch                 
+Response Distribution         Binary                  
+Link Function                 Logit                   
+Variance Function             Default                 
+Variance Matrix Blocked By    schoolID                
+Estimation Technique          Maximum Likelihood      
+Likelihood Approximation      Gauss-Hermite Quadrature
+Degrees of Freedom Method     Between-Within          
+
+
+Number of Observations Read       13082
+Number of Observations Used       13082
+
+
+           Response Profile
+ 
+ Ordered                        Total
+   Value    frlunch         Frequency
+
+       1    1                    4023
+       2    0                    9059
+
+The GLIMMIX procedure is modeling the probability that frlunch='1'.
+NOTE: The GLIMMIX procedure is modeling the probability that frlunch='1'.
+
+
+            Dimensions
+
+G-side Cov. Parameters           1
+Columns in X                     2
+Columns in Z per Subject         1
+Subjects (Blocks in V)          94
+Max Obs per Subject            515
+
+
+           Optimization Information
+
+Optimization Technique        Dual Quasi-Newton
+Parameters in Optimization    3                
+Lower Boundaries              1                
+Upper Boundaries              0                
+Fixed Effects                 Not Profiled     
+Starting From                 GLM estimates    
+Quadrature Points             15               
+
+
+                                Iteration History
+ 
+                                           Objective                         Max
+Iteration    Restarts    Evaluations        Function          Change    Gradient
+
+        0           0              4    13140.794404       .            227.3291
+        1           0              2    13103.439023     37.35538054    4.408228
+        2           0              3    13103.265291      0.17373237    2.530688
+        3           0              3    13103.238439      0.02685203    1.543486
+        4           0              4    13103.224783      0.01365575    0.339667
+        5           0              2     13103.22444      0.00034306    0.001314
+        6           0              3     13103.22444      0.00000002    0.000048
+NOTE: Convergence criterion (GCONV=1E-8) satisfied.
+
+         Convergence criterion (GCONV=1E-8) satisfied.          
+
+
+           Fit Statistics
+
+-2 Log Likelihood           13103.22
+AIC  (smaller is better)    13109.22
+AICC (smaller is better)    13109.23
+BIC  (smaller is better)    13116.85
+CAIC (smaller is better)    13119.85
+HQIC (smaller is better)    13112.31
+
+
+      Fit Statistics for Conditional
+               Distribution
+
+-2 log L(frlunch | r. effects)    12796.50
+Pearson Chi-Square                12054.12
+Pearson Chi-Square / DF               0.92
+
+
+            Covariance Parameter Estimates
+ 
+Cov                                Standard
+Parm       Subject     Estimate       Error    Gradient
+
+UN(1,1)    schoolID      0.7657      0.1448    -0.00005
+
+
+                         Solutions for Fixed Effects
+ 
+                         Standard
+Effect       Estimate       Error       DF    t Value    Pr > |t|    Gradient
+
+Intercept     -1.4696      0.1040       92     -14.13      <.0001    0.000025
+SMmath50      -1.4429      0.1403       92     -10.29      <.0001    -0.00002
+
+
+                       Odds Ratio Estimates
+ 
+                                                 95% Confidence
+SMmath50    _SMmath50    Estimate       DF           Limits
+
+  0.8119       -0.188       0.236       92       0.179       0.312
+
+Effects of continuous variables are assessed as one unit offsets from the mean. The AT suboption modifies the reference value and the UNIT suboption modifies the offsets.
+
+
+        Type III Tests of Fixed Effects
+ 
+              Num      Den
+Effect         DF       DF    F Value    Pr > F
+
+SMmath50        1       92     105.81    <.0001
+
+
+                                              Estimates
+ 
+                                                                                              Standard
+                                      Standard                                                   Error
+Label                     Estimate       Error       DF    t Value    Pr > |t|        Mean        Mean
+
+Intercept if SMmath=49    -0.02668      0.1421       92      -0.19      0.8515      0.4933     0.03552
+Intercept if SMmath=50     -1.4696      0.1040       92     -14.13      <.0001      0.1870     0.01581
+Intercept if SMmath=51     -2.9125      0.2020       92     -14.42      <.0001     0.05154    0.009873
+L2 Math Slope              -1.4429      0.1403       92     -10.29      <.0001      0.1911     0.02168
+NOTE: The data set WORK.COVSMMATH has 1 observations and 5 variables.
+NOTE: PROCEDURE GLIMMIX used (Total process time):
+      real time           2.32 seconds
+      cpu time            2.28 seconds
+      
+
+125  * Calculate PseudoR2 relative to previous model 2;
+126  %PseudoR2G(NCov=1, CovFewer=CovEmpty, CovMore=CovSMmath);
+
+NOTE: There were 1 observations read from the data set WORK.COVEMPTY.
+NOTE: The data set WORK.COVEMPTY has 1 observations and 6 variables.
+NOTE: DATA statement used (Total process time):
+      real time           0.01 seconds
+      cpu time            0.00 seconds
+      
+
+
+NOTE: There were 1 observations read from the data set WORK.COVSMMATH.
+NOTE: The data set WORK.COVSMMATH has 1 observations and 6 variables.
+NOTE: DATA statement used (Total process time):
+      real time           0.01 seconds
+      cpu time            0.01 seconds
+      
+
+
+NOTE: There were 1 observations read from the data set WORK.COVEMPTY.
+NOTE: There were 1 observations read from the data set WORK.COVSMMATH.
+NOTE: The data set WORK.COVCOMPARE has 2 observations and 6 variables.
+NOTE: DATA statement used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+
+
+NOTE: Missing values were generated as a result of performing an operation on missing values.
+      Each place is given by: (Number of times) at (Line):(Column).
+      1 at 2:36   1 at 2:46   
+NOTE: There were 2 observations read from the data set WORK.COVCOMPARE.
+NOTE: The data set WORK.COVCOMPARE has 2 observations and 7 variables.
+NOTE: DATA statement used (Total process time):
+      real time           0.01 seconds
+      cpu time            0.00 seconds
+      
+
+
+NOTE: There were 2 observations read from the data set WORK.COVCOMPARE.
+NOTE: The data set WORK.COVCOMPARE has 2 observations and 7 variables.
+NOTE: DATA statement used (Total process time):
+      real time           0.01 seconds
+      cpu time            0.01 seconds
+      
+
+
+ 
+                                                                                                                                                                                                                                                                
+ 
+PsuedoR2 (% Reduction) for CovEmpty vs. CovSMmath
+
+                                                                         Pseudo
+  Name       CovParm    Subject     Estimate      StdErr    Gradient       R2
+
+CovEmpty     UN(1,1)    schoolID      1.9545      0.3315    0.000164     .     
+CovSMmath    UN(1,1)    schoolID      0.7657      0.1448    -0.00005    0.60824
+NOTE: There were 2 observations read from the data set WORK.COVCOMPARE.
+NOTE: PROCEDURE PRINT used (Total process time):
+      real time           0.09 seconds
+      cpu time            0.01 seconds
+      
+
+127  
+128  TITLE "SAS Model 4: Add Level-1 Fixed Effect of Group-MC Student Math";
+129  PROC GLIMMIX DATA=work.grade10 NOCLPRINT NAMELEN=100 METHOD=QUAD(QPOINTS=15) GRADIENT;
+130       CLASS schoolID;
+131       MODEL frlunch (DESCENDING) = SMmath50 WSmath / SOLUTION LINK=LOGIT DIST=BINARY DDFM=BW ODDSRATIO;
+132       RANDOM INTERCEPT / TYPE=UN SUBJECT=schoolID;
+133       ESTIMATE "Contextual Between-School Effect of Math"  WSmath -1  SMmath50 1;
+134       CONTRAST "Multivariate Wald test for Math Effects"  SMmath50 1, WSmath 1 / CHISQ;
+135  RUN;
+
+
+135!      TITLE;
+
+
+
+ 
+                                                                                                                                                                                                                                                                
+ 
+SAS Model 4: Add Level-1 Fixed Effect of Group-MC Student Math
+
+The GLIMMIX Procedure
+
+                  Model Information
+
+Data Set                      WORK.GRADE10            
+Response Variable             frlunch                 
+Response Distribution         Binary                  
+Link Function                 Logit                   
+Variance Function             Default                 
+Variance Matrix Blocked By    schoolID                
+Estimation Technique          Maximum Likelihood      
+Likelihood Approximation      Gauss-Hermite Quadrature
+Degrees of Freedom Method     Between-Within          
+
+
+Number of Observations Read       13082
+Number of Observations Used       13082
+
+
+           Response Profile
+ 
+ Ordered                        Total
+   Value    frlunch         Frequency
+
+       1    1                    4023
+       2    0                    9059
+
+The GLIMMIX procedure is modeling the probability that frlunch='1'.
+NOTE: The GLIMMIX procedure is modeling the probability that frlunch='1'.
+
+
+            Dimensions
+
+G-side Cov. Parameters           1
+Columns in X                     3
+Columns in Z per Subject         1
+Subjects (Blocks in V)          94
+Max Obs per Subject            515
+
+
+           Optimization Information
+
+Optimization Technique        Dual Quasi-Newton
+Parameters in Optimization    4                
+Lower Boundaries              1                
+Upper Boundaries              0                
+Fixed Effects                 Not Profiled     
+Starting From                 GLM estimates    
+Quadrature Points             15               
+
+
+                                Iteration History
+ 
+                                           Objective                         Max
+Iteration    Restarts    Evaluations        Function          Change    Gradient
+
+        0           0              4    12429.492194       .            204.9863
+        1           0              3    12420.179599      9.31259502    312.4885
+        2           0              3      12395.7148     24.46479913    298.8841
+        3           0              3    12392.983398      2.73140251     142.926
+        4           0              3    12391.161187      1.82221099    23.41123
+        5           0              2    12391.033755      0.12743114     26.2133
+        6           0              4     12390.75739      0.27636557    5.218254
+        7           0              3    12390.684683      0.07270675    5.450237
+        8           0              3    12390.672426      0.01225745    0.800261
+        9           0              3    12390.672284      0.00014130     0.03726
+       10           0              3    12390.672284      0.00000035    0.000823
+NOTE: Convergence criterion (GCONV=1E-8) satisfied.
+
+         Convergence criterion (GCONV=1E-8) satisfied.          
+
+
+           Fit Statistics
+
+-2 Log Likelihood           12390.67
+AIC  (smaller is better)    12398.67
+AICC (smaller is better)    12398.68
+BIC  (smaller is better)    12408.85
+CAIC (smaller is better)    12412.85
+HQIC (smaller is better)    12402.78
+
+
+      Fit Statistics for Conditional
+               Distribution
+
+-2 log L(frlunch | r. effects)    12080.62
+Pearson Chi-Square                11998.58
+Pearson Chi-Square / DF               0.92
+
+
+            Covariance Parameter Estimates
+ 
+Cov                                Standard
+Parm       Subject     Estimate       Error    Gradient
+
+UN(1,1)    schoolID      0.8414      0.1576    0.000012
+
+
+                         Solutions for Fixed Effects
+ 
+                         Standard
+Effect       Estimate       Error       DF    t Value    Pr > |t|    Gradient
+
+Intercept     -1.5598      0.1088       92     -14.34      <.0001    -0.00046
+SMmath50      -1.5174      0.1467       92     -10.35      <.0001     0.00009
+WSmath        -0.3720     0.01450    12987     -25.66      <.0001    0.000823
+
+
+                                  Odds Ratio Estimates
+ 
+                                                                      95% Confidence
+SMmath50    WSmath    _SMmath50    _WSmath    Estimate       DF           Limits
+
+  0.8119    -1E-17       -0.188     -1E-17       0.219       92       0.164       0.293
+  -0.188         1       -0.188     -1E-17       0.689    12987       0.670       0.709
+
+Effects of continuous variables are assessed as one unit offsets from the mean. The AT suboption modifies the reference value and the UNIT suboption modifies the offsets.
+
+
+        Type III Tests of Fixed Effects
+ 
+              Num      Den
+Effect         DF       DF    F Value    Pr > F
+
+SMmath50        1       92     107.06    <.0001
+WSmath          1    12987     658.55    <.0001
+
+
+                                           Estimates
+ 
+                                                        Standard
+Label                                       Estimate       Error       DF    t Value    Pr > |t|
+
+Contextual Between-School Effect of Math     -1.1454      0.1468       92      -7.80      <.0001
+
+
+                                                 Contrasts
+ 
+                                            Num      Den
+Label                                        DF       DF    Chi-Square    F Value      Pr > ChiSq    Pr > F
+
+Multivariate Wald test for Math Effects       2    12987        746.30     373.15          <.0001    <.0001
+NOTE: PROCEDURE GLIMMIX used (Total process time):
+      real time           3.69 seconds
+      cpu time            3.62 seconds
+      
+
+136  
+137  TITLE "SAS Model 5: Add Random Effect of Group-MC Student Math";
+138  PROC GLIMMIX DATA=work.grade10 NOCLPRINT NAMELEN=100 METHOD=QUAD(QPOINTS=15) GRADIENT;
+139       CLASS schoolID;
+140       MODEL frlunch (DESCENDING) = SMmath50 WSmath / SOLUTION LINK=LOGIT DIST=BINARY DDFM=BW ODDSRATIO;
+141       RANDOM INTERCEPT WSmath / TYPE=UN SUBJECT=schoolID;
+142       COVTEST "Random Student Math Slope?" . 0 0; * Leave (1,1), test if (2,1) and (2,2) =0;
+143       ODS OUTPUT CovParms=CovRandMath;   * Save random variances for pseudo-R2;
+144  RUN;
+
+
+144!      TITLE;
+
+
+
+ 
+                                                                                                                                                                                                                                                                
+ 
+SAS Model 5: Add Random Effect of Group-MC Student Math
+
+The GLIMMIX Procedure
+
+                  Model Information
+
+Data Set                      WORK.GRADE10            
+Response Variable             frlunch                 
+Response Distribution         Binary                  
+Link Function                 Logit                   
+Variance Function             Default                 
+Variance Matrix Blocked By    schoolID                
+Estimation Technique          Maximum Likelihood      
+Likelihood Approximation      Gauss-Hermite Quadrature
+Degrees of Freedom Method     Between-Within          
+
+
+Number of Observations Read       13082
+Number of Observations Used       13082
+
+
+           Response Profile
+ 
+ Ordered                        Total
+   Value    frlunch         Frequency
+
+       1    1                    4023
+       2    0                    9059
+
+The GLIMMIX procedure is modeling the probability that frlunch='1'.
+NOTE: The GLIMMIX procedure is modeling the probability that frlunch='1'.
+
+
+            Dimensions
+
+G-side Cov. Parameters           3
+Columns in X                     3
+Columns in Z per Subject         2
+Subjects (Blocks in V)          94
+Max Obs per Subject            515
+
+
+           Optimization Information
+
+Optimization Technique        Dual Quasi-Newton
+Parameters in Optimization    6                
+Lower Boundaries              2                
+Upper Boundaries              0                
+Fixed Effects                 Not Profiled     
+Starting From                 GLM estimates    
+Quadrature Points             15               
+
+
+                                Iteration History
+ 
+                                           Objective                         Max
+Iteration    Restarts    Evaluations        Function          Change    Gradient
+
+        0           0              4    12393.288939       .             302.522
+        1           0              6    12390.113854      3.17508416    225.9487
+        2           0              5    12383.332423      6.78143102    234.0332
+        3           0              3    12357.426662     25.90576187    394.3772
+        4           0              4    12356.555802      0.87085920     411.325
+        5           0              4    12354.428788      2.12701389    246.8638
+        6           0              3    12353.257727      1.17106191    56.83005
+        7           0              3    12352.670655      0.58707148    119.3797
+        8           0              3    12352.355474      0.31518101    44.27692
+        9           0              2    12352.070202      0.28527224      92.427
+       10           0              3     12352.01578      0.05442216    16.80364
+       11           0              3    12352.009318      0.00646146     0.79942
+       12           0              3    12352.008019      0.00129907    1.245576
+       13           0              3    12352.007667      0.00035226    1.401754
+       14           0              3    12352.007632      0.00003524    0.324555
+NOTE: Convergence criterion (GCONV=1E-8) satisfied.
+NOTE: At least one element of the gradient is greater than 1e-3.
+
+         Convergence criterion (GCONV=1E-8) satisfied.          
+
+
+           Fit Statistics
+
+-2 Log Likelihood           12352.01
+AIC  (smaller is better)    12364.01
+AICC (smaller is better)    12364.01
+BIC  (smaller is better)    12379.27
+CAIC (smaller is better)    12385.27
+HQIC (smaller is better)    12370.17
+
+
+      Fit Statistics for Conditional
+               Distribution
+
+-2 log L(frlunch | r. effects)    11972.38
+Pearson Chi-Square                11829.26
+Pearson Chi-Square / DF               0.90
+
+
+            Covariance Parameter Estimates
+ 
+Cov                                Standard
+Parm       Subject     Estimate       Error    Gradient
+
+UN(1,1)    schoolID      0.8118      0.1540    -0.00188
+UN(2,1)    schoolID    -0.03524     0.02906    0.007376
+UN(2,2)    schoolID     0.01608    0.005433    0.324555
+
+
+                         Solutions for Fixed Effects
+ 
+                         Standard
+Effect       Estimate       Error       DF    t Value    Pr > |t|    Gradient
+
+Intercept     -1.5665      0.1076       92     -14.56      <.0001    0.003945
+SMmath50      -1.5617      0.1477       92     -10.57      <.0001     -0.0015
+WSmath        -0.3434     0.02425    12987     -14.16      <.0001    -0.04844
+
+
+                                  Odds Ratio Estimates
+ 
+                                                                      95% Confidence
+SMmath50    WSmath    _SMmath50    _WSmath    Estimate       DF           Limits
+
+  0.8119    -1E-17       -0.188     -1E-17       0.210       92       0.156       0.281
+  -0.188         1       -0.188     -1E-17       0.709    12987       0.676       0.744
+
+Effects of continuous variables are assessed as one unit offsets from the mean. The AT suboption modifies the reference value and the UNIT suboption modifies the offsets.
+
+
+        Type III Tests of Fixed Effects
+ 
+              Num      Den
+Effect         DF       DF    F Value    Pr > F
+
+SMmath50        1       92     111.74    <.0001
+WSmath          1    12987     200.62    <.0001
+
+
+                          Tests of Covariance Parameters
+                             Based on the Likelihood
+ 
+Label                           DF    -2 Log Like      ChiSq    Pr > ChiSq    Note
+
+Random Student Math Slope?       2          12391      38.66        <.0001    MI  
+
+MI: P-value based on a mixture of chi-squares.
+NOTE: The data set WORK.COVRANDMATH has 3 observations and 5 variables.
+NOTE: PROCEDURE GLIMMIX used (Total process time):
+      real time           1:03.90
+      cpu time            1:03.60
+      
+
+145  
+146  TITLE "SAS Model 6: Add Intra-Variable Interactions of School Mean and Group-MC Student Math";
+147  PROC GLIMMIX DATA=work.grade10 NOCLPRINT NAMELEN=100 METHOD=QUAD(QPOINTS=15) GRADIENT;
+148       CLASS schoolID;
+149       MODEL frlunch (DESCENDING) = SMmath50 WSmath SMmath50*WSmath SMmath50*SMmath50
+150                         / SOLUTION LINK=LOGIT DIST=BINARY DDFM=BW ODDSRATIO;
+151       RANDOM INTERCEPT WSmath / TYPE=UN SUBJECT=schoolID;
+152       ESTIMATE "Contextual Math Main Effect" WSmath -1 SMmath50 1;
+153       ESTIMATE "Contextual Math Interaction" SMmath50*WSmath -1 SMmath50*SMmath50 1;
+154       CONTRAST "Multivariate Wald test for Interactions"  SMmath50*WSmath 1, SMmath50*SMmath50 1 / CHISQ;
+155       ODS OUTPUT CovParms=CovInteract;   * Save random variances for pseudo-R2;
+156  RUN;
+
+
+156!      TITLE;
+
+
+
+ 
+                                                                                                                                                                                                                                                                
+ 
+SAS Model 6: Add Intra-Variable Interactions of School Mean and Group-MC Student Math
+
+The GLIMMIX Procedure
+
+                  Model Information
+
+Data Set                      WORK.GRADE10            
+Response Variable             frlunch                 
+Response Distribution         Binary                  
+Link Function                 Logit                   
+Variance Function             Default                 
+Variance Matrix Blocked By    schoolID                
+Estimation Technique          Maximum Likelihood      
+Likelihood Approximation      Gauss-Hermite Quadrature
+Degrees of Freedom Method     Between-Within          
+
+
+Number of Observations Read       13082
+Number of Observations Used       13082
+
+
+           Response Profile
+ 
+ Ordered                        Total
+   Value    frlunch         Frequency
+
+       1    1                    4023
+       2    0                    9059
+
+The GLIMMIX procedure is modeling the probability that frlunch='1'.
+NOTE: The GLIMMIX procedure is modeling the probability that frlunch='1'.
+
+
+            Dimensions
+
+G-side Cov. Parameters           3
+Columns in X                     5
+Columns in Z per Subject         2
+Subjects (Blocks in V)          94
+Max Obs per Subject            515
+
+
+           Optimization Information
+
+Optimization Technique        Dual Quasi-Newton
+Parameters in Optimization    8                
+Lower Boundaries              2                
+Upper Boundaries              0                
+Fixed Effects                 Not Profiled     
+Starting From                 GLM estimates    
+Quadrature Points             15               
+
+
+                                Iteration History
+ 
+                                           Objective                         Max
+Iteration    Restarts    Evaluations        Function          Change    Gradient
+
+        0           0              4    12395.662685       .            278.5578
+        1           0              8     12390.22475      5.43793490    340.0247
+        2           0              5    12385.426891      4.79785901    216.9965
+        3           0              3    12359.195551     26.23134090    287.5839
+        4           0              4    12358.240717      0.95483341     306.623
+        5           0              3    12357.590658      0.65005946    323.9906
+        6           0              4    12355.146009      2.44464902    280.5154
+        7           0              2    12352.619507      2.52650134    120.7898
+        8           0              2    12350.782944      1.83656307    669.3943
+        9           0              2     12349.58253      1.20041443    127.1813
+       10           0              2    12348.668036      0.91449382     53.4645
+       11           0              3    12348.054215      0.61382141    32.06176
+       12           0              3    12347.891394      0.16282073    61.41024
+       13           0              3    12347.853803      0.03759070    25.52372
+       14           0              3    12347.847342      0.00646141    3.069658
+       15           0              3    12347.845254      0.00208738    0.993449
+       16           0              3    12347.844934      0.00032076    1.281213
+       17           0              3    12347.844903      0.00003056    0.332867
+NOTE: Convergence criterion (GCONV=1E-8) satisfied.
+NOTE: At least one element of the gradient is greater than 1e-3.
+
+         Convergence criterion (GCONV=1E-8) satisfied.          
+
+
+           Fit Statistics
+
+-2 Log Likelihood           12347.84
+AIC  (smaller is better)    12363.84
+AICC (smaller is better)    12363.86
+BIC  (smaller is better)    12384.19
+CAIC (smaller is better)    12392.19
+HQIC (smaller is better)    12372.06
+
+
+      Fit Statistics for Conditional
+               Distribution
+
+-2 log L(frlunch | r. effects)    11974.58
+Pearson Chi-Square                11914.72
+Pearson Chi-Square / DF               0.91
+
+
+            Covariance Parameter Estimates
+ 
+Cov                                Standard
+Parm       Subject     Estimate       Error    Gradient
+
+UN(1,1)    schoolID      0.8157      0.1553    -0.00526
+UN(2,1)    schoolID    -0.02773     0.02798    -0.05393
+UN(2,2)    schoolID     0.01348    0.004909    0.332867
+
+
+                             Solutions for Fixed Effects
+ 
+                                 Standard
+Effect               Estimate       Error       DF    t Value    Pr > |t|    Gradient
+
+Intercept             -1.5460      0.1231       91     -12.55      <.0001    0.003075
+SMmath50              -1.5833      0.1998       91      -7.93      <.0001    -0.00215
+WSmath                -0.3688     0.02633    12986     -14.01      <.0001    -0.10677
+SMmath50*WSmath      -0.06962     0.03364    12986      -2.07      0.0385    0.055708
+SMmath50*SMmath50    -0.06850      0.1760       91      -0.39      0.6980      0.0059
+
+
+                                  Odds Ratio Estimates
+ 
+                                                                      95% Confidence
+SMmath50    WSmath    _SMmath50    _WSmath    Estimate       DF           Limits
+
+  0.8119    -1E-17       -0.188     -1E-17       0.197       91       0.111       0.348
+  -0.188         1       -0.188     -1E-17       0.701    12986       0.668       0.735
+
+Effects of continuous variables are assessed as one unit offsets from the mean. The AT suboption modifies the reference value and the UNIT suboption modifies the offsets.
+
+
+            Type III Tests of Fixed Effects
+ 
+                      Num      Den
+Effect                 DF       DF    F Value    Pr > F
+
+SMmath50                1       91      62.82    <.0001
+WSmath                  1    12986     196.21    <.0001
+SMmath50*WSmath         1    12986       4.28    0.0385
+SMmath50*SMmath50       1       91       0.15    0.6980
+
+
+                                     Estimates
+ 
+                                           Standard
+Label                          Estimate       Error       DF    t Value    Pr > |t|
+
+Contextual Math Main Effect     -1.2145      0.1994       91      -6.09      <.0001
+Contextual Math Interaction    0.001114      0.1772       91       0.01      0.9950
+
+
+                                                 Contrasts
+ 
+                                            Num      Den
+Label                                        DF       DF    Chi-Square    F Value      Pr > ChiSq    Pr > F
+
+Multivariate Wald test for Interactions       2       91          4.35       2.18          0.1133    0.1192
+NOTE: The data set WORK.COVINTERACT has 3 observations and 5 variables.
+NOTE: PROCEDURE GLIMMIX used (Total process time):
+      real time           57.27 seconds
+      cpu time            57.23 seconds
+      
+
+157  * Calculate PseudoR2 relative to previous model 5;
+158  %PseudoR2G(NCov=3, CovFewer=CovRandMath, CovMore=CovInteract);
+
+NOTE: There were 3 observations read from the data set WORK.COVRANDMATH.
+NOTE: The data set WORK.COVRANDMATH has 3 observations and 6 variables.
+NOTE: DATA statement used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+
+
+NOTE: There were 3 observations read from the data set WORK.COVINTERACT.
+NOTE: The data set WORK.COVINTERACT has 3 observations and 6 variables.
+NOTE: DATA statement used (Total process time):
+      real time           0.01 seconds
+      cpu time            0.00 seconds
+      
+
+
+NOTE: There were 3 observations read from the data set WORK.COVRANDMATH.
+NOTE: There were 3 observations read from the data set WORK.COVINTERACT.
+NOTE: The data set WORK.COVCOMPARE has 6 observations and 6 variables.
+NOTE: DATA statement used (Total process time):
+      real time           0.01 seconds
+      cpu time            0.01 seconds
+      
+
+
+NOTE: Missing values were generated as a result of performing an operation on missing values.
+      Each place is given by: (Number of times) at (Line):(Column).
+      3 at 2:36   3 at 2:46   
+NOTE: There were 6 observations read from the data set WORK.COVCOMPARE.
+NOTE: The data set WORK.COVCOMPARE has 6 observations and 7 variables.
+NOTE: DATA statement used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+
+
+NOTE: There were 6 observations read from the data set WORK.COVCOMPARE.
+NOTE: The data set WORK.COVCOMPARE has 4 observations and 7 variables.
+NOTE: DATA statement used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+
+
+ 
+                                                                                                                                                                                                                                                                
+ 
+PsuedoR2 (% Reduction) for CovRandMath vs. CovInteract
+
+   Name        CovParm    Subject     Estimate      StdErr    Gradient    PseudoR2
+
+CovRandMath    UN(1,1)    schoolID      0.8118      0.1540    -0.00188      .     
+CovRandMath    UN(2,2)    schoolID     0.01608    0.005433    0.324555      .     
+CovInteract    UN(1,1)    schoolID      0.8157      0.1553    -0.00526    -0.00479
+CovInteract    UN(2,2)    schoolID     0.01348    0.004909    0.332867     0.16163
+NOTE: There were 4 observations read from the data set WORK.COVCOMPARE.
+NOTE: PROCEDURE PRINT used (Total process time):
+      real time           0.01 seconds
+      cpu time            0.01 seconds
+      
+
+159  
+160  
+161  * Close output;
+162  PROC PRINTTO; RUN;
+

@@ -226,6 +226,19 @@ A esta nueva versión se agregaron efectos aleatorios. Tras probar distintas opc
 
 <img src="https://github.com/Bladimir-PF/IESED2023-MultilevelAnalysis/blob/main/4.%20Tablas%20y%20figuras/PseudoStandardized%20Slopes.png?raw=true"  width="60%" height="30%">
 
+La única pendiente aleatoria que mejoró el modelo fue la de Sexo ($\tau_{U_1}^2$ = 56.73). Esto quiere decir que la diferencia estimada entre los promedios de rendimiento de hombres y mujeres de un mismo colegio no es la misma a través de la muestra. Al calcular un intervalo de confianza al 95% para este efecto aleatorio [$\gamma_{10} \pm (1,96 * \sqrt(\tau_{U_1}^2))$] podemos inferir que si bien los hombres alcanzarían un rendimiento promedio **34,049** puntos mayor que las mujeres en un mismo colegio, se espera que un 95% de la muestra tenga diferencias entre **19.286** y **48.812**.
+
+```{r, eval=FALSE}
+-34.049 + (1.96 * 7.532)
+-34.049 - (1.96 * 7.532)
+```
+
+El modelo multinivel ha modificado la interpretación del intercepto. En un modelo regular, este sería el resultado predicho para un estudiante cuando los predictores son iguales a cero. Sin embargo, luego de añadir el segundo nivel al modelo, este valor representa la media condicional del promedio de rendimiento en la PDT Matemática de las escuelas cuando los predictores de nivel 2 son iguales a cero. En otras palabras, para un colegio hipotético con 50% de hombres, 30% de estudiantes de primer quintil y cuyos padre y madre tendrían solo educación básica, con puntaje promedio Ranking igual a 600 puntos, de tipo Técnico profesional y que no forma parte del convenio PACE. Gracias al intercepto aleatorio, podemos inferir que si bien para estos establecimientos el rendimiento estimado en la PDT Matemática es **480,554**, este rendimiento no es homogéneo en la muestra, y se espera que un 95% de la muestra tenga variaciones de rendimiento promedio entre **423.789** y **537.320**.
+
+```{r, eval=FALSE}
+480.554+ (1.96 * 28.962)
+480.554 - (1.96 * 28.962)
+```
 
 **Tabla 5**
 
@@ -233,7 +246,7 @@ A esta nueva versión se agregaron efectos aleatorios. Tras probar distintas opc
 
 ```{r table3, echo=FALSE, message=FALSE, warnings=FALSE, results='asis'}
 tabl <- "
-|		|	Pendiente	|	Pendiente estandarizada	|	SE	|	Pr(>|t|)	|
+|Predictor		|	Coeficiente	|	Coeficiente estandarizado	|	SE	|	Pr(>|t|)	|
 |:------|:--------:|:--------:|:------:|:-------:|
 |	Intercepto	|	480,554	|	−	|	6,372	|	<.01	|
 |	**Nivel 1**	|		|		|		|		|
@@ -247,7 +260,7 @@ tabl <- "
 |	Ed. Madre Media (CMC)	|	3,434	|	0,020	|	1,011	|	<.01	|
 |	Ed. Madre Superior (CMC)	|	8,204	|	0,040	|	1,224	|	<.01	|
 |	Ranking (CMC)	|	0,346	|	0,486	|	0,003	|	<.01	|
-|	Nivel 2	|		|		|		|		|
+|	**Nivel 2**	|		|		|		|		|
 |	Sexo (ref. 50%)	|	−19,991	|	−0,127	|	5,106	|	<.01	|
 |	Quintil 2 (ref. 30%)	|	31,696	|	0,082	|	12,969	|	<.05	|
 |	Quintil 3 (ref. 30%)	|	14,155	|	0,025	|	15,726	|	>.05	|
@@ -264,12 +277,44 @@ tabl <- "
 cat(tabl)
 ```
 
+Adicionalmente, a nivel 1 podemos descatar que:
+
+- El rendimiento estimado entre grupos socioeconómicos al interior de una misma escuela decrece a medida que aumentan los recursos económicos familiares,
+- Contar con padres que hayan alcanzado la educación superior se tradujo en un incremento en los promedios de rendimiento para estudiantes de un mismo colegio,
+- Los estudiantes con puntajes Ranking por encima del promedio de su colegio tendrían un mejor rendimiento en la PDT Matemática que el resto de sus compañeros/as.
+
+A nivel 2, podemos descatar que:
+
+- El rendimiento promedio en la PDT Matemática entre colegios disminuyó según la proporción de mujeres en el establecimiento. Por ejemplo, cada 10% de mujeres en el establecimiento se estimó una reducción en el rendimiento promedio igual a 1,9 puntos (−19,991 / 10),
+- La presencia de estudiantes del mayor quintil de ingresos en lugar de estudiantes de primer quintil en el colegio se tradujo en un incremento significativo en el rendimiento predicho. Por cada 10% de estudiantes de quinto quintil, la diferencia estimada entre colegios incrementó 8 puntos (80,626 / 10),
+- El nivel educacional de los padres y madres del colegio también tuvo un efecto positivo significativo sobre las diferencias en puntaje entre colegios, especialmente la educación de la madre. Por cada 10% de madres que llegaron a la educación superior, la diferencia entre colegios creció por 7,4 puntos (74,835 / 10),
+- El buen rendimiento en Ranking, seguir una formación Humanista y no contar con las características que requieren de un convenio PACE también se asociaron con un incremento significativo en los niveles de rendimiento entre colegios.
+
+Antes de finalizar, cabe destacar que el modelo analizado tuvo una capacidad explicativa del 78,4% de la varianza del intercepto aleatorio, es decir, alrededor de 3/4 del 31,3% de variación a nivel 2 que mostró el rendimiento en la PDT Matemática de los estudiantes el año 2022. Respecto a los residuos de nivel 1, el modelo fue capaz de explicar el 21,4% de la varianza residual, es decir, alrededor de 1/5 de del 68,7% de variación entre estudiantes de un mismo colegio que mostró la variable dependiente en el primer modelo vacío ajustado. En términos de resultados predichos, el modelo alcanzó un R2 cercano al 40% (0,387). Como muestra la Tabla 6, estos resultados fueron similares en el conjunto de datos de validación (el otro 50% de la muestra), lo cual robustece la precisión de los resultados del modelo analizado.
+
+**Tabla 6**
+
+*Índices de ajuste entre modelos según conjunto de datos**
+
+```{r table4, echo=FALSE, message=FALSE, warnings=FALSE, results='asis'}
+tabl <- "
+|     |Base entrenamiento|	Base validación|
+|:-------|:---------:|:---------:|
+|**CC modelo vacío**|	0,313	|0,281|
+|**Pseudo R2**|		|       |
+|- *Intercepto aleatorio*|	0,784|	0,787|
+|- *Varianza residual*|	0,214|	0,203|
+|**Total R2**|	0,387|	0,356|
+"
+cat(tabl)
+```
+
 # Conclusiones (preliminares)
 
-En relación con la pregunta de investigación, preliminarmente podemos concluir que:
+En relación con la pregunta de investigación sobre si existen diferencias en el rendimiento de la PDT de Matemática 2022 entre estudiantes que puedan ser atribuidas a características socioeconómicas individuales y escolares, podemos concluir que:
 
-- 
-
-- 
+- Si bien a nivel individual el Ranking fue el predictor de mayor magnitud, las variables socioeconómicas mostraron una contribución significativa a la estimación del rendimiento en la PDT de Matemática entre estudiantes de un mismo colegio, especialmente el sexo y la educación del padre,
+- Entre colegios, la composición de la matrícula en términos socioeconómicos mostró un efecto significativo sobre la estimación del rendimiento promedio en la PDT de Matemática. Especialmente, la proporción de estudiantes hombres, de familias clasificadas en el quintil de ingresos percápita más alto, con padre y/o madre con educación superior, y con rendimiento Ranking sobre los 600 puntos, son atributos que marcaron una diferencia favorable para los colegios.
+- El modelamiento multinivel fue capaz de ajustar un modelo que alcanzó un total R2 entre 35% y 38% entre los conjuntos de datos, con efectos similares entre las pendientes, lo cual apoya la confiabilidad de sus resultados en la muestra analizada.
 
 # Referencias

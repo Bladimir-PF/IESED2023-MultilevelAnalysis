@@ -1,0 +1,1010 @@
+------------------------------------------------------------------------------------------------------------------------------------------------------
+      name:  STATA_Example3a
+       log:  C:\Dropbox\19_PSQF7375_Clustered\PSQF7375_Clustered_Example3a\STATA_Example3a_Output.log
+  log type:  text
+ opened on:  21 Sep 2019, 07:18:04
+
+. 
+. display as result "STATA School-Level Descriptives"
+STATA School-Level Descriptives
+
+. preserve  // Save for later use, then compute school-level dataset
+
+. collapse  Nperschool SMlangpost SMIQverbz SMIQperfz homework denomina mixedgra, ///
+>           by(schoolID)
+
+. tabulate  denomina 
+
+     (mean) |
+   denomina |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |         56       31.46       31.46
+          2 |         68       38.20       69.66
+          3 |         54       30.34      100.00
+------------+-----------------------------------
+      Total |        178      100.00
+
+. tabulate  mixedgra
+
+     (mean) |
+   mixedgra |      Freq.     Percent        Cum.
+------------+-----------------------------------
+       0.00 |        116       65.17       65.17
+       1.00 |         62       34.83      100.00
+------------+-----------------------------------
+      Total |        178      100.00
+
+. format    SMlangpost SMIQverbz SMIQperfz homework Nperschool %4.2f
+
+. summarize SMlangpost SMIQverbz SMIQperfz homework Nperschool, format
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+  SMlangpost |        178       40.75        4.95      23.71      50.33
+   SMIQverbz |        178       -0.04        0.46      -2.07       1.22
+   SMIQperfz |        178       -0.03        0.35      -1.19       0.96
+    homework |        178        2.41        0.53       1.33       3.67
+  Nperschool |        178       18.57        7.37       4.00      34.00
+
+. restore   // Go back to student-level dataset
+
+. 
+. display as result "STATA Student-Level Descriptives"
+STATA Student-Level Descriptives
+
+. format    langpost WSlangpost IQverbz WSIQverbz IQperfz WSIQperfz %4.2f
+
+. summarize langpost WSlangpost IQverbz WSIQverbz IQperfz WSIQperfz, format
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+    langpost |      3,305       41.30        8.87       9.00      58.00
+  WSlangpost |      3,305       -0.00        7.69     -33.55      22.70
+     IQverbz |      3,305        0.00        1.00      -3.85       3.25
+   WSIQverbz |      3,305       -0.00        0.92      -3.54       3.34
+     IQperfz |      3,305        0.00        1.00      -2.91       2.99
+-------------+---------------------------------------------------------
+   WSIQperfz |      3,305       -0.00        0.95      -2.77       2.85
+
+. 
+. display as result "STATA Model 1a for Language: Empty Means, No Random Intercept"
+STATA Model 1a for Language: Empty Means, No Random Intercept
+
+. mixed langpost , /// 
+>       variance reml dfmethod(residual)
+
+Computing degrees of freedom:
+
+Mixed-effects REML regression                   Number of obs     =      3,305
+DF method: Residual                             DF:           min =   3,304.00
+                                                              avg =   3,304.00
+                                                              max =   3,304.00
+
+                                                F(0,  3304.00)    =          .
+Log restricted-likelihood = -11905.013          Prob > F          =          .
+
+------------------------------------------------------------------------------
+    langpost |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+       _cons |   41.30469   .1543475   267.61   0.000     41.00206    41.60732
+------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------
+  Random-effects Parameters  |   Estimate   Std. Err.     [95% Conf. Interval]
+-----------------------------+------------------------------------------------
+               var(Residual) |   78.73553   1.936868       75.0294    82.62472
+------------------------------------------------------------------------------
+
+.        
+. display as result "STATA Model 1b for Language: Empty Means, Random Intercept"
+STATA Model 1b for Language: Empty Means, Random Intercept
+
+. mixed langpost , /// 
+>          || schoolID: , variance reml covariance(unstructured) dfmethod(satterthwaite),
+Note: single-variable random-effects specification in schoolID equation; covariance structure set to identity
+
+Performing EM optimization: 
+
+Performing gradient-based optimization: 
+
+Iteration 0:   log restricted-likelihood = -11686.619  
+Iteration 1:   log restricted-likelihood = -11686.619  
+
+Computing standard errors:
+
+Computing degrees of freedom:
+
+Mixed-effects REML regression                   Number of obs     =      3,305
+Group variable: schoolID                        Number of groups  =        178
+
+                                                Obs per group:
+                                                              min =          4
+                                                              avg =       18.6
+                                                              max =         34
+DF method: Satterthwaite                        DF:           min =     175.69
+                                                              avg =     175.69
+                                                              max =     175.69
+
+                                                F(0,     0.00)    =          .
+Log restricted-likelihood = -11686.619          Prob > F          =          .
+
+------------------------------------------------------------------------------
+    langpost |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+       _cons |   40.89593   .3553269   115.09   0.000     40.19467    41.59718
+------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------
+  Random-effects Parameters  |   Estimate   Std. Err.     [95% Conf. Interval]
+-----------------------------+------------------------------------------------
+schoolID: Identity           |
+                  var(_cons) |    18.5189   2.470581      14.25797     24.0532
+-----------------------------+------------------------------------------------
+               var(Residual) |   62.61918   1.586618      59.58542    65.80741
+------------------------------------------------------------------------------
+LR test vs. linear model: chibar2(01) = 436.79        Prob >= chibar2 = 0.0000
+
+.        estat icc  // Compute Intraclass Correlation
+
+Intraclass correlation
+
+------------------------------------------------------------------------------
+                       Level |        ICC   Std. Err.     [95% Conf. Interval]
+-----------------------------+------------------------------------------------
+                    schoolID |   .2282393   .0241629      .1843516    .2790014
+------------------------------------------------------------------------------
+
+.        
+. display as result "STATA Model 2a: Add 3 School Predictors"
+STATA Model 2a: Add 3 School Predictors
+
+. mixed langpost c.hw2 c.mixedgra c.den1v2 c.den1v3, /// 
+>          || schoolID: , variance reml covariance(unstructured) dfmethod(satterthwaite),
+Note: single-variable random-effects specification in schoolID equation; covariance structure set to identity
+
+Performing EM optimization: 
+
+Performing gradient-based optimization: 
+
+Iteration 0:   log restricted-likelihood = -11671.523  
+Iteration 1:   log restricted-likelihood = -11671.523  
+
+Computing standard errors:
+
+Computing degrees of freedom:
+
+Mixed-effects REML regression                   Number of obs     =      3,305
+Group variable: schoolID                        Number of groups  =        178
+
+                                                Obs per group:
+                                                              min =          4
+                                                              avg =       18.6
+                                                              max =         34
+DF method: Satterthwaite                        DF:           min =     168.17
+                                                              avg =     173.67
+                                                              max =     187.05
+
+                                                F(4,   174.71)    =       6.68
+Log restricted-likelihood = -11671.523          Prob > F          =     0.0001
+
+------------------------------------------------------------------------------
+    langpost |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         hw2 |   .8306542   .6403618     1.30   0.196    -.4335296    2.094838
+    mixedgra |  -2.014156    .733634    -2.75   0.007    -3.461416   -.5668961
+      den1v2 |   2.741809   .8143322     3.37   0.001     1.134317    4.349302
+      den1v3 |   .4716793   .8585303     0.55   0.583    -1.222781     2.16614
+       _cons |   40.00241   .7249031    55.18   0.000     38.57136    41.43346
+------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------
+  Random-effects Parameters  |   Estimate   Std. Err.     [95% Conf. Interval]
+-----------------------------+------------------------------------------------
+schoolID: Identity           |
+                  var(_cons) |   15.95494    2.21356      12.15629    20.94061
+-----------------------------+------------------------------------------------
+               var(Residual) |   62.61944   1.586618      59.58568    65.80767
+------------------------------------------------------------------------------
+LR test vs. linear model: chibar2(01) = 357.45        Prob >= chibar2 = 0.0000
+
+.        test (c.mixedgra=0) (c.den1v2=0) (c.den1v3=0), small // Test Change in R2 after HW
+
+ ( 1)  [langpost]mixedgra = 0
+ ( 2)  [langpost]den1v2 = 0
+ ( 3)  [langpost]den1v3 = 0
+
+       F(  3,176.81) =    8.28
+            Prob > F =    0.0000
+
+.        test                (c.den1v2=0) (c.den1v3=0), small // Test Omnibus Denomination
+
+ ( 1)  [langpost]den1v2 = 0
+ ( 2)  [langpost]den1v3 = 0
+
+       F(  2,171.63) =    6.61
+            Prob > F =    0.0017
+
+.        lincom c.den1v2*-1 + c.den1v3*1, small // Denomination 2 vs 3
+
+ ( 1)  - [langpost]den1v2 + [langpost]den1v3 = 0
+
+------------------------------------------------------------------------------
+    langpost |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         (1) |   -2.27013   .8265489    -2.75   0.007    -3.901697   -.6385632
+------------------------------------------------------------------------------
+
+.        predict PredHMD, xb         
+
+.        corr langpost PredHMD  
+(obs=3,305)
+
+             | langpost  PredHMD
+-------------+------------------
+    langpost |   1.0000
+     PredHMD |   0.1793   1.0000
+
+
+.        display as result r(rho)^2 // total R2
+.0321317
+
+.        
+. display as result "STATA Model 2b: Add Interaction of Mixed Grade by Denomination"
+STATA Model 2b: Add Interaction of Mixed Grade by Denomination
+
+. mixed langpost c.hw2 c.mixedgra c.den1v2 c.den1v3 c.mixedgra#c.den1v2 c.mixedgra#c.den1v3, /// 
+>          || schoolID: , variance reml covariance(unstructured) dfmethod(satterthwaite),
+Note: single-variable random-effects specification in schoolID equation; covariance structure set to identity
+
+Performing EM optimization: 
+
+Performing gradient-based optimization: 
+
+Iteration 0:   log restricted-likelihood = -11667.413  
+Iteration 1:   log restricted-likelihood = -11667.413  
+
+Computing standard errors:
+
+Computing degrees of freedom:
+
+Mixed-effects REML regression                   Number of obs     =      3,305
+Group variable: schoolID                        Number of groups  =        178
+
+                                                Obs per group:
+                                                              min =          4
+                                                              avg =       18.6
+                                                              max =         34
+DF method: Satterthwaite                        DF:           min =     156.09
+                                                              avg =     169.52
+                                                              max =     185.07
+
+                                                F(6,   176.93)    =       4.89
+Log restricted-likelihood = -11667.413          Prob > F          =     0.0001
+
+-------------------------------------------------------------------------------------
+           langpost |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+--------------------+----------------------------------------------------------------
+                hw2 |   .7926545   .6433229     1.23   0.220    -.4774936    2.062803
+           mixedgra |  -1.866503   1.238446    -1.51   0.134    -4.310138    .5771329
+             den1v2 |   2.493657   .9861676     2.53   0.012      .545701    4.441612
+             den1v3 |   1.069227    1.07894     0.99   0.323     -1.06195    3.200404
+                    |
+c.mixedgra#c.den1v2 |   1.195487   1.779921     0.67   0.503    -2.316178    4.707152
+                    |
+c.mixedgra#c.den1v3 |  -1.654441   1.767829    -0.94   0.351    -5.142129    1.833246
+                    |
+              _cons |   39.95898   .8373564    47.72   0.000     38.30511    41.61285
+-------------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------
+  Random-effects Parameters  |   Estimate   Std. Err.     [95% Conf. Interval]
+-----------------------------+------------------------------------------------
+schoolID: Identity           |
+                  var(_cons) |   15.86736   2.218775      12.06365    20.87038
+-----------------------------+------------------------------------------------
+               var(Residual) |   62.62434   1.586835      59.59017      65.813
+------------------------------------------------------------------------------
+LR test vs. linear model: chibar2(01) = 351.63        Prob >= chibar2 = 0.0000
+
+.        test (c.mixedgra#c.den1v2=0) (c.mixedgra#c.den1v3=0), small // Test Omnibus Interaction
+
+ ( 1)  [langpost]c.mixedgra#c.den1v2 = 0
+ ( 2)  [langpost]c.mixedgra#c.den1v3 = 0
+
+       F(  2,185.55) =    1.26
+            Prob > F =    0.2864
+
+.        // Simple effects of mixed grade per denomination
+.        lincom c.mixedgra*1 + c.mixedgra#c.den1v2*0  + c.mixedgra#c.den1v3*0, small // MG:Den=1
+
+ ( 1)  [langpost]mixedgra = 0
+
+------------------------------------------------------------------------------
+    langpost |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         (1) |  -1.866503   1.238446    -1.51   0.134    -4.310138    .5771329
+------------------------------------------------------------------------------
+
+.        lincom c.mixedgra*1 + c.mixedgra#c.den1v2*1  + c.mixedgra#c.den1v3*0, small // MG:Den=2
+
+ ( 1)  [langpost]mixedgra + [langpost]c.mixedgra#c.den1v2 = 0
+
+------------------------------------------------------------------------------
+    langpost |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         (1) |  -.6710156    1.27807    -0.53   0.600      -3.1923    1.850268
+------------------------------------------------------------------------------
+
+.        lincom c.mixedgra*1 + c.mixedgra#c.den1v2*0  + c.mixedgra#c.den1v3*1, small // MG:Den=3
+
+ ( 1)  [langpost]mixedgra + [langpost]c.mixedgra#c.den1v3 = 0
+
+------------------------------------------------------------------------------
+    langpost |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         (1) |  -3.520944    1.27521    -2.76   0.006    -6.036492   -1.005396
+------------------------------------------------------------------------------
+
+.        // Simple effects of denomination per mixed grade
+.        lincom c.den1v2*1  + c.den1v3*0 + c.mixedgra#c.den1v2*0  + c.mixedgra#c.den1v3*0, small // D1v2: MG=0
+
+ ( 1)  [langpost]den1v2 = 0
+
+------------------------------------------------------------------------------
+    langpost |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         (1) |   2.493657   .9861676     2.53   0.012      .545701    4.441612
+------------------------------------------------------------------------------
+
+.        lincom c.den1v2*0  + c.den1v3*1 + c.mixedgra#c.den1v2*0  + c.mixedgra#c.den1v3*0, small // D1v3: MG=0
+
+ ( 1)  [langpost]den1v3 = 0
+
+------------------------------------------------------------------------------
+    langpost |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         (1) |   1.069227    1.07894     0.99   0.323     -1.06195    3.200404
+------------------------------------------------------------------------------
+
+.        lincom c.den1v2*-1 + c.den1v3*1 + c.mixedgra#c.den1v2*0  + c.mixedgra#c.den1v3*0, small // D2v3: MG=0
+
+ ( 1)  - [langpost]den1v2 + [langpost]den1v3 = 0
+
+------------------------------------------------------------------------------
+    langpost |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         (1) |   -1.42443   .9819102    -1.45   0.149    -3.363885    .5150263
+------------------------------------------------------------------------------
+
+.        lincom c.den1v2*1  + c.den1v3*0 + c.mixedgra#c.den1v2*1  + c.mixedgra#c.den1v3*0, small // D1v2: MG=1
+
+ ( 1)  [langpost]den1v2 + [langpost]c.mixedgra#c.den1v2 = 0
+
+------------------------------------------------------------------------------
+    langpost |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         (1) |   3.689144   1.474563     2.50   0.013      .781403    6.596884
+------------------------------------------------------------------------------
+
+.        lincom c.den1v2*0  + c.den1v3*1 + c.mixedgra#c.den1v2*0  + c.mixedgra#c.den1v3*1, small // D1v3: MG=1
+
+ ( 1)  [langpost]den1v3 + [langpost]c.mixedgra#c.den1v3 = 0
+
+------------------------------------------------------------------------------
+    langpost |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         (1) |  -.5852141   1.403769    -0.42   0.677    -3.352839     2.18241
+------------------------------------------------------------------------------
+
+.        lincom c.den1v2*-1 + c.den1v3*1 + c.mixedgra#c.den1v2*-1 + c.mixedgra#c.den1v3*1, small // D2v3: MG=1
+
+ ( 1)  - [langpost]den1v2 + [langpost]den1v3 - [langpost]c.mixedgra#c.den1v2 + [langpost]c.mixedgra#c.den1v3 = 0
+
+------------------------------------------------------------------------------
+    langpost |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         (1) |  -4.274358   1.519941    -2.81   0.005     -7.27127   -1.277446
+------------------------------------------------------------------------------
+
+.        // Differences in simple effects -- interaction contrasts
+.        lincom c.mixedgra#c.den1v2*1  + c.mixedgra#c.den1v3*0, small // MG:Den=1v2
+
+ ( 1)  [langpost]c.mixedgra#c.den1v2 = 0
+
+------------------------------------------------------------------------------
+    langpost |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         (1) |   1.195487   1.779921     0.67   0.503    -2.316178    4.707152
+------------------------------------------------------------------------------
+
+.        lincom c.mixedgra#c.den1v2*0  + c.mixedgra#c.den1v3*1, small // MG:Den=1v3
+
+ ( 1)  [langpost]c.mixedgra#c.den1v3 = 0
+
+------------------------------------------------------------------------------
+    langpost |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         (1) |  -1.654441   1.767829    -0.94   0.351    -5.142129    1.833246
+------------------------------------------------------------------------------
+
+.        lincom c.mixedgra#c.den1v2*-1 + c.mixedgra#c.den1v3*1, small // MG:Den=2v3
+
+ ( 1)  - [langpost]c.mixedgra#c.den1v2 + [langpost]c.mixedgra#c.den1v3 = 0
+
+------------------------------------------------------------------------------
+    langpost |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         (1) |  -2.849928   1.805547    -1.58   0.116    -6.411717     .711861
+------------------------------------------------------------------------------
+
+.        predict PredMGxD, xb        
+
+.        corr langpost PredMGxD  
+(obs=3,305)
+
+             | langpost PredMGxD
+-------------+------------------
+    langpost |   1.0000
+    PredMGxD |   0.1883   1.0000
+
+
+.        display as result r(rho)^2 // total R2
+.03545784
+
+.        
+. display as result "STATA Model 1b for IQverb: Empty Means, Random Intercept"
+STATA Model 1b for IQverb: Empty Means, Random Intercept
+
+. mixed IQverbz , /// 
+>          || schoolID: , variance reml covariance(unstructured) dfmethod(satterthwaite),
+Note: single-variable random-effects specification in schoolID equation; covariance structure set to identity
+
+Performing EM optimization: 
+
+Performing gradient-based optimization: 
+
+Iteration 0:   log restricted-likelihood =  -4615.082  
+Iteration 1:   log restricted-likelihood =  -4615.082  
+
+Computing standard errors:
+
+Computing degrees of freedom:
+
+Mixed-effects REML regression                   Number of obs     =      3,305
+Group variable: schoolID                        Number of groups  =        178
+
+                                                Obs per group:
+                                                              min =          4
+                                                              avg =       18.6
+                                                              max =         34
+DF method: Satterthwaite                        DF:           min =     173.41
+                                                              avg =     173.41
+                                                              max =     173.41
+
+                                                F(0,     0.00)    =          .
+Log restricted-likelihood =  -4615.082          Prob > F          =          .
+
+------------------------------------------------------------------------------
+     IQverbz |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+       _cons |  -.0219446    .031519    -0.70   0.487    -.0841549    .0402656
+------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------
+  Random-effects Parameters  |   Estimate   Std. Err.     [95% Conf. Interval]
+-----------------------------+------------------------------------------------
+schoolID: Identity           |
+                  var(_cons) |   .1221007   .0200282      .0885311    .1683995
+-----------------------------+------------------------------------------------
+               var(Residual) |   .8940383   .0226903      .8506541    .9396351
+------------------------------------------------------------------------------
+LR test vs. linear model: chibar2(01) = 154.28        Prob >= chibar2 = 0.0000
+
+.        estat icc  // Compute Intraclass Correlation     
+
+Intraclass correlation
+
+------------------------------------------------------------------------------
+                       Level |        ICC   Std. Err.     [95% Conf. Interval]
+-----------------------------+------------------------------------------------
+                    schoolID |   .1201614    .017804      .0894014    .1596494
+------------------------------------------------------------------------------
+
+.        
+. display as result "STATA Model 1b for IQperf: Empty Means, Random Intercept"
+STATA Model 1b for IQperf: Empty Means, Random Intercept
+
+. mixed IQperfz , /// 
+>          || schoolID: , variance reml covariance(unstructured) dfmethod(satterthwaite),
+Note: single-variable random-effects specification in schoolID equation; covariance structure set to identity
+
+Performing EM optimization: 
+
+Performing gradient-based optimization: 
+
+Iteration 0:   log restricted-likelihood = -4669.6248  
+Iteration 1:   log restricted-likelihood = -4669.6242  
+Iteration 2:   log restricted-likelihood = -4669.6242  
+
+Computing standard errors:
+
+Computing degrees of freedom:
+
+Mixed-effects REML regression                   Number of obs     =      3,305
+Group variable: schoolID                        Number of groups  =        178
+
+                                                Obs per group:
+                                                              min =          4
+                                                              avg =       18.6
+                                                              max =         34
+DF method: Satterthwaite                        DF:           min =     167.93
+                                                              avg =     167.93
+                                                              max =     167.93
+
+                                                F(0,     0.00)    =          .
+Log restricted-likelihood = -4669.6242          Prob > F          =          .
+
+------------------------------------------------------------------------------
+     IQperfz |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+       _cons |  -.0117736   .0241952    -0.49   0.627    -.0595395    .0359923
+------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------
+  Random-effects Parameters  |   Estimate   Std. Err.     [95% Conf. Interval]
+-----------------------------+------------------------------------------------
+schoolID: Identity           |
+                  var(_cons) |     .04854   .0112392      .0308324    .0764174
+-----------------------------+------------------------------------------------
+               var(Residual) |   .9528437   .0241058      .9067495    1.001281
+------------------------------------------------------------------------------
+LR test vs. linear model: chibar2(01) = 45.20         Prob >= chibar2 = 0.0000
+
+.        estat icc  // Compute Intraclass Correlation     
+
+Intraclass correlation
+
+------------------------------------------------------------------------------
+                       Level |        ICC   Std. Err.     [95% Conf. Interval]
+-----------------------------+------------------------------------------------
+                    schoolID |    .048473   .0108909      .0310727    .0748643
+------------------------------------------------------------------------------
+
+.       
+. display as result "STATA Model 3a: Remove Mixed Grade by Denom, Add L2 and L1 Student Verbal IQ"
+STATA Model 3a: Remove Mixed Grade by Denom, Add L2 and L1 Student Verbal IQ
+
+. mixed langpost c.hw2 c.mixedgra c.den1v2 c.den1v3 c.SMIQverbz0 c.WSIQverbz, /// 
+>          || schoolID: , variance reml covariance(unstructured) dfmethod(satterthwaite),
+Note: single-variable random-effects specification in schoolID equation; covariance structure set to identity
+
+Performing EM optimization: 
+
+Performing gradient-based optimization: 
+
+Iteration 0:   log restricted-likelihood = -10935.212  
+Iteration 1:   log restricted-likelihood = -10935.212  
+
+Computing standard errors:
+
+Computing degrees of freedom:
+
+Mixed-effects REML regression                   Number of obs     =      3,305
+Group variable: schoolID                        Number of groups  =        178
+
+                                                Obs per group:
+                                                              min =          4
+                                                              avg =       18.6
+                                                              max =         34
+DF method: Satterthwaite                        DF:           min =     166.93
+                                                              avg =     598.63
+                                                              max =   3,128.15
+
+                                                F(6,   211.10)    =     318.85
+Log restricted-likelihood = -10935.212          Prob > F          =     0.0000
+
+------------------------------------------------------------------------------
+    langpost |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         hw2 |   .1424972   .4666554     0.31   0.760      -.77881    1.063804
+    mixedgra |  -1.060856   .5390478    -1.97   0.051    -2.124252    .0025406
+      den1v2 |   1.624583   .5966193     2.72   0.007     .4468311    2.802334
+      den1v3 |  -.3620373   .6264137    -0.58   0.564    -1.598385    .8743105
+  SMIQverbz0 |   7.298852   .5690181    12.83   0.000     6.176697    8.421008
+   WSIQverbz |    4.97203   .1206461    41.21   0.000     4.735476    5.208584
+       _cons |   40.87842   .5294821    77.20   0.000     39.83312    41.92373
+------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------
+  Random-effects Parameters  |   Estimate   Std. Err.     [95% Conf. Interval]
+-----------------------------+------------------------------------------------
+schoolID: Identity           |
+                  var(_cons) |   7.926528   1.134731      5.987263    10.49392
+-----------------------------+------------------------------------------------
+               var(Residual) |   40.51778   1.025197      38.55744    42.57779
+------------------------------------------------------------------------------
+LR test vs. linear model: chibar2(01) = 295.96        Prob >= chibar2 = 0.0000
+
+.        test (c.SMIQverbz0=0) (c.WSIQverbz=0), small  // Test Omnibus Verbal IQ
+
+ ( 1)  [langpost]SMIQverbz0 = 0
+ ( 2)  [langpost]WSIQverbz = 0
+
+       F(  2,368.75) =  931.47
+            Prob > F =    0.0000
+
+.        lincom c.den1v2*-1 + c.den1v3*1, small        // Denomination 2 vs 3
+
+ ( 1)  - [langpost]den1v2 + [langpost]den1v3 = 0
+
+------------------------------------------------------------------------------
+    langpost |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         (1) |   -1.98662   .5992956    -3.31   0.001    -3.169677   -.8035632
+------------------------------------------------------------------------------
+
+.        lincom c.SMIQverbz0*1 + c.WSIQverbz*-1, small // L1 Contextual Effect of Verbal IQ
+
+ ( 1)  [langpost]SMIQverbz0 - [langpost]WSIQverbz = 0
+
+------------------------------------------------------------------------------
+    langpost |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         (1) |   2.326822   .5816675     4.00   0.000     1.180315     3.47333
+------------------------------------------------------------------------------
+
+.        predict PredIQverb, xb      
+
+.        corr langpost PredIQverb  
+(obs=3,305)
+
+             | langpost PredIQ~b
+-------------+------------------
+    langpost |   1.0000
+  PredIQverb |   0.6267   1.0000
+
+
+.        display as result r(rho)^2 // total R2
+.39278635
+
+.        
+. display as result "STATA Model 3b: Add L2 and L1 Student Performance IQ"
+STATA Model 3b: Add L2 and L1 Student Performance IQ
+
+. mixed langpost c.hw2 c.mixedgra c.den1v2 c.den1v3 c.SMIQverbz0 c.WSIQverbz c.SMIQperfz0 c.WSIQperfz, /// 
+>          || schoolID: , variance reml covariance(unstructured) dfmethod(satterthwaite),
+Note: single-variable random-effects specification in schoolID equation; covariance structure set to identity
+
+Performing EM optimization: 
+
+Performing gradient-based optimization: 
+
+Iteration 0:   log restricted-likelihood =  -10851.49  
+Iteration 1:   log restricted-likelihood =  -10851.49  
+
+Computing standard errors:
+
+Computing degrees of freedom:
+
+Mixed-effects REML regression                   Number of obs     =      3,305
+Group variable: schoolID                        Number of groups  =        178
+
+                                                Obs per group:
+                                                              min =          4
+                                                              avg =       18.6
+                                                              max =         34
+DF method: Satterthwaite                        DF:           min =     165.97
+                                                              avg =     831.71
+                                                              max =   3,127.11
+
+                                                F(8,   232.41)    =     272.99
+Log restricted-likelihood =  -10851.49          Prob > F          =     0.0000
+
+------------------------------------------------------------------------------
+    langpost |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         hw2 |   .1075076   .4558265     0.24   0.814     -.792458    1.007473
+    mixedgra |  -1.014795   .5265431    -1.93   0.055    -2.053564    .0239733
+      den1v2 |   1.416675   .5863406     2.42   0.017      .259218    2.574132
+      den1v3 |  -.1733444   .6146356    -0.28   0.778    -1.386491    1.039802
+  SMIQverbz0 |   5.926231   .7072313     8.38   0.000     4.531062      7.3214
+   WSIQverbz |   4.289516   .1292478    33.19   0.000     4.036097    4.542935
+  SMIQperfz0 |   2.883433   .9191701     3.14   0.002     1.069856    4.697011
+   WSIQperfz |   1.594648   .1250914    12.75   0.000     1.349378    1.839917
+       _cons |   40.93191    .517317    79.12   0.000     39.91058    41.95323
+------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------
+  Random-effects Parameters  |   Estimate   Std. Err.     [95% Conf. Interval]
+-----------------------------+------------------------------------------------
+schoolID: Identity           |
+                  var(_cons) |   7.564822   1.083593      5.713099    10.01672
+-----------------------------+------------------------------------------------
+               var(Residual) |   38.52194   .9747844        36.658    40.48066
+------------------------------------------------------------------------------
+LR test vs. linear model: chibar2(01) = 296.97        Prob >= chibar2 = 0.0000
+
+.        test (c.SMIQverbz0=0) (c.WSIQverbz=0), small   // Test Omnibus Verbal IQ
+
+ ( 1)  [langpost]SMIQverbz0 = 0
+ ( 2)  [langpost]WSIQverbz = 0
+
+       F(  2,351.62) =  585.84
+            Prob > F =    0.0000
+
+.        test (c.SMIQperfz0=0) (c.WSIQperfz=0), small   // Test Omnibus Performance IQ
+
+ ( 1)  [langpost]SMIQperfz0 = 0
+ ( 2)  [langpost]WSIQperfz = 0
+
+       F(  2,342.99) =   86.17
+            Prob > F =    0.0000
+
+.        lincom c.den1v2*-1 + c.den1v3*1, small         // Denomination 2 vs 3
+
+ ( 1)  - [langpost]den1v2 + [langpost]den1v3 = 0
+
+------------------------------------------------------------------------------
+    langpost |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         (1) |   -1.59002   .5987129    -2.66   0.009    -2.771869   -.4081704
+------------------------------------------------------------------------------
+
+.        lincom c.SMIQverbz0*1  + c.WSIQverbz*-1, small // L1 Contextual Effect of Verbal IQ
+
+ ( 1)  [langpost]SMIQverbz0 - [langpost]WSIQverbz = 0
+
+------------------------------------------------------------------------------
+    langpost |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         (1) |   1.636715   .7189445     2.28   0.024     .2190237    3.054406
+------------------------------------------------------------------------------
+
+.        lincom c.SMIQperfz0*1  + c.WSIQperfz*-1, small // L1 Contextual Effect of Performance IQ
+
+ ( 1)  [langpost]SMIQperfz0 - [langpost]WSIQperfz = 0
+
+------------------------------------------------------------------------------
+    langpost |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         (1) |   1.288786   .9276429     1.39   0.166    -.5410702    3.118642
+------------------------------------------------------------------------------
+
+.        lincom c.SMIQverbz0*-1 + c.SMIQperfz0*1, small // L2 Verbal vs Performance IQ Effects
+
+ ( 1)  - [langpost]SMIQverbz0 + [langpost]SMIQperfz0 = 0
+
+------------------------------------------------------------------------------
+    langpost |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         (1) |  -3.042798   1.466128    -2.08   0.039    -5.935598   -.1499982
+------------------------------------------------------------------------------
+
+.        lincom c.WSIQverbz*-1  + c.WSIQperf*1,  small  // L1 Verbal vs Performance IQ Effects
+
+ ( 1)  - [langpost]WSIQverbz + [langpost]WSIQperfz = 0
+
+------------------------------------------------------------------------------
+    langpost |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         (1) |  -2.694869   .2138866   -12.60   0.000    -3.114241   -2.275496
+------------------------------------------------------------------------------
+
+.        predict PredIQperf, xb      
+
+.        corr langpost PredIQperf  
+(obs=3,305)
+
+             | langpost PredIQ~f
+-------------+------------------
+    langpost |   1.0000
+  PredIQperf |   0.6504   1.0000
+
+
+.        display as result r(rho)^2 // total R2
+.42297696
+
+.        
+. display as result "STATA Model 3c: Add L2 and L1 IQ Interactions"
+STATA Model 3c: Add L2 and L1 IQ Interactions
+
+. mixed langpost c.hw2 c.mixedgra c.den1v2 c.den1v3 c.SMIQverbz0 c.WSIQverbz c.SMIQperfz0 c.WSIQperfz /// 
+>                c.SMIQverbz0#c.SMIQperfz0 c.WSIQverbz#c.WSIQperfz, ///
+>          || schoolID: , variance reml covariance(unstructured) dfmethod(satterthwaite),
+Note: single-variable random-effects specification in schoolID equation; covariance structure set to identity
+
+Performing EM optimization: 
+
+Performing gradient-based optimization: 
+
+Iteration 0:   log restricted-likelihood = -10846.163  
+Iteration 1:   log restricted-likelihood = -10846.163  
+
+Computing standard errors:
+
+Computing degrees of freedom:
+
+Mixed-effects REML regression                   Number of obs     =      3,305
+Group variable: schoolID                        Number of groups  =        178
+
+                                                Obs per group:
+                                                              min =          4
+                                                              avg =       18.6
+                                                              max =         34
+DF method: Satterthwaite                        DF:           min =     164.72
+                                                              avg =     989.99
+                                                              max =   3,207.09
+
+                                                F(10,   251.92)   =     220.49
+Log restricted-likelihood = -10846.163          Prob > F          =     0.0000
+
+-------------------------------------------------------------------------------------------
+                 langpost |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+--------------------------+----------------------------------------------------------------
+                      hw2 |    .154897   .4491163     0.34   0.731    -.7318698    1.041664
+                 mixedgra |  -.8030072   .5264997    -1.53   0.129    -1.841669    .2356542
+                   den1v2 |   1.482859   .5784073     2.56   0.011     .3410048    2.624714
+                   den1v3 |   -.093774   .6058974    -0.15   0.877     -1.28974    1.102192
+               SMIQverbz0 |   5.380931     .72698     7.40   0.000     3.946472     6.81539
+                WSIQverbz |   4.278382   .1292526    33.10   0.000     4.024953     4.53181
+               SMIQperfz0 |    2.81363    .905903     3.11   0.002     1.026146    4.601115
+                WSIQperfz |   1.606795   .1251189    12.84   0.000     1.361472    1.852119
+                          |
+c.SMIQverbz0#c.SMIQperfz0 |  -2.291413   .9280652    -2.47   0.014    -4.121067   -.4617587
+                          |
+  c.WSIQverbz#c.WSIQperfz |  -.2805585   .1197423    -2.34   0.019    -.5153377   -.0457794
+                          |
+                    _cons |   41.09883   .5120258    80.27   0.000     40.08806     42.1096
+-------------------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------
+  Random-effects Parameters  |   Estimate   Std. Err.     [95% Conf. Interval]
+-----------------------------+------------------------------------------------
+schoolID: Identity           |
+                  var(_cons) |   7.259618   1.052118       5.46451    9.644423
+-----------------------------+------------------------------------------------
+               var(Residual) |   38.47274   .9736825      36.61091    40.42924
+------------------------------------------------------------------------------
+LR test vs. linear model: chibar2(01) = 282.75        Prob >= chibar2 = 0.0000
+
+.        test (c.SMIQverbz0#c.SMIQperfz0) (c.WSIQverbz#c.WSIQperfz), small   // Test Omnibus Interactions
+
+ ( 1)  [langpost]c.SMIQverbz0#c.SMIQperfz0 = 0
+ ( 2)  [langpost]c.WSIQverbz#c.WSIQperfz = 0
+
+       F(  2,387.95) =    5.73
+            Prob > F =    0.0035
+
+.        lincom c.den1v2*-1 + c.den1v3*1, small  // Denomination 2 vs 3
+
+ ( 1)  - [langpost]den1v2 + [langpost]den1v3 = 0
+
+------------------------------------------------------------------------------
+    langpost |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         (1) |  -1.576633   .5894072    -2.67   0.008    -2.740152   -.4131149
+------------------------------------------------------------------------------
+
+.            // Get simple slopes of L2 IQ perf at representative values of L2 IQ verb
+.        lincom c.SMIQperfz0*1 + c.SMIQperfz0#c.SMIQverbz0*-1, small // L2 IQ perf effect at L2 IQ verbz = -1
+
+ ( 1)  [langpost]SMIQperfz0 - [langpost]c.SMIQverbz0#c.SMIQperfz0 = 0
+
+------------------------------------------------------------------------------
+    langpost |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         (1) |   5.105043   1.271347     4.02   0.000     2.598241    7.611845
+------------------------------------------------------------------------------
+
+.        lincom c.SMIQperfz0*1 + c.SMIQperfz0#c.SMIQverbz0*0,  small // L2 IQ perf effect at L2 IQ verbz =  0
+
+ ( 1)  [langpost]SMIQperfz0 = 0
+
+------------------------------------------------------------------------------
+    langpost |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         (1) |    2.81363    .905903     3.11   0.002     1.026146    4.601115
+------------------------------------------------------------------------------
+
+.        lincom c.SMIQperfz0*1 + c.SMIQperfz0#c.SMIQverbz0*1,  small // L2 IQ perf effect at L2 IQ verbz =  1
+
+ ( 1)  [langpost]SMIQperfz0 + [langpost]c.SMIQverbz0#c.SMIQperfz0 = 0
+
+------------------------------------------------------------------------------
+    langpost |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         (1) |   .5222176    1.32197     0.40   0.693    -2.085708    3.130143
+------------------------------------------------------------------------------
+
+.        // Get simple slopes of L1 IQ perf at representative values of L1 IQ verb
+.        lincom c.WSIQperfz*1 + c.WSIQperfz#c.WSIQverbz*-1, small // L1 IQ perf effect at L1 IQ verb z = -1
+
+ ( 1)  [langpost]WSIQperfz - [langpost]c.WSIQverbz#c.WSIQperfz = 0
+
+------------------------------------------------------------------------------
+    langpost |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         (1) |   1.887354   .1767331    10.68   0.000     1.540831    2.233877
+------------------------------------------------------------------------------
+
+.        lincom c.WSIQperfz*1 + c.WSIQperfz#c.WSIQverbz*0,  small // L1 IQ perf effect at L1 IQ verb z =  0
+
+ ( 1)  [langpost]WSIQperfz = 0
+
+------------------------------------------------------------------------------
+    langpost |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         (1) |   1.606795   .1251189    12.84   0.000     1.361472    1.852119
+------------------------------------------------------------------------------
+
+.        lincom c.WSIQperfz*1 + c.WSIQperfz#c.WSIQverbz*1,  small // L1 IQ perf effect at L1 IQ verb z =  1
+
+ ( 1)  [langpost]WSIQperfz + [langpost]c.WSIQverbz#c.WSIQperfz = 0
+
+------------------------------------------------------------------------------
+    langpost |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         (1) |   1.326237   .1695622     7.82   0.000     .9937739      1.6587
+------------------------------------------------------------------------------
+
+.        estat vce  // Aymptotic covariance matrix of fixed effects for regions
+
+Covariance matrix of coefficients of mixed model
+
+             | langpost                                                                                                                           
+             |                                                                                                 c.SMIQve~0# c.WSIQve~z#            
+        e(V) |        hw2    mixedgra      den1v2      den1v3  SMIQverbz0   WSIQverbz  SMIQperfz0   WSIQperfz  c.SMIQpe~0  c.WSIQpe~z       _cons 
+-------------+------------------------------------------------------------------------------------------------------------------------------------
+langpost     |                                                                                                                                    
+         hw2 |  .20170545                                                                                                                         
+    mixedgra |  .02882275   .27720193                                                                                                             
+      den1v2 |  .01959143   .04152719   .33455502                                                                                                 
+      den1v3 | -.02032184   .00639282   .17713292   .36711166                                                                                     
+  SMIQverbz0 | -.02793403   .01229635  -.02639107  -.06782232   .52849992                                                                         
+   WSIQverbz |  .00001135   .00002209   .00005401   5.143e-06   .00007663   .01670623                                                             
+  SMIQperfz0 |  -.0107453   .00985421  -.06058994   .05255653  -.38273319   -.0000361   .82066019                                                 
+   WSIQperfz | -.00001238   -.0000241  -.00005892  -5.611e-06   -.0000836  -.00671341   .00003938   .01565474                                     
+c.SMIQverbz0#|                                                                                                                                    
+c.SMIQperfz0 | -.02047798  -.08414324  -.03434651  -.02985935   .19257097   .00004822   .03282039  -.00005261   .86130494                         
+ c.WSIQverbz#|                                                                                                                                    
+ c.WSIQperfz |  .00028597   .00055652   .00136088    .0001296   .00193084   .00056904   -.0009096  -.00062082   .00121509   .01433821             
+       _cons | -.09395718  -.10798422  -.20356692   -.1701522   .02449776  -.00024141   .01484095   .00026337  -.01925186  -.00608273   .26217044 
+-------------+------------------------------------------------------------------------------------------------------------------------------------
+lns1_1_1     |                                                                                                                                    
+       _cons |          0           0           0           0           0           0           0           0           0           0           0 
+-------------+------------------------------------------------------------------------------------------------------------------------------------
+lnsig_e      |                                                                                                                                    
+       _cons |          0           0           0           0           0           0           0           0           0           0           0 
+
+             | lns1_1_1   | lnsig_e    
+             |            |            
+        e(V) |      _cons |      _cons 
+-------------+------------+------------
+lns1_1_1     |            |            
+       _cons |  .00525099 |            
+-------------+------------+------------
+lnsig_e      |            |            
+       _cons |  -.0000544 |  .00016013 
+
+.        predict PredIQxIQ, xb       
+
+.        corr langpost PredIQxIQ  
+(obs=3,305)
+
+             | langpost PredIQ~Q
+-------------+------------------
+    langpost |   1.0000
+   PredIQxIQ |   0.6539   1.0000
+
+
+.        display as result r(rho)^2 // total R2
+.42762314
+
+. 
+. // Close log
+. log close STATA_Example3a  
+      name:  STATA_Example3a
+       log:  C:\Dropbox\19_PSQF7375_Clustered\PSQF7375_Clustered_Example3a\STATA_Example3a_Output.log
+  log type:  text
+ closed on:  21 Sep 2019, 07:19:01
+------------------------------------------------------------------------------------------------------------------------------------------------------

@@ -1,0 +1,477 @@
+------------------------------------------------------------------------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  C:\Dropbox\19_PSQF7375_Clustered\PSQF7375_Clustered_Example6\PSQF7375_Clustered_Example6_STATA_Output.log
+  log type:  text
+ opened on:  15 Nov 2019, 14:44:24
+
+. 
+. // Keep items with item predictor variables
+. egen nmiss=rowmiss(cor rclut rrel rbrit legsign)
+
+. drop if nmiss>0
+(154 observations deleted)
+
+. drop if use38==0
+(0 observations deleted)
+
+. 
+. 
+. ////////////////////////////////////////////////////////////////////////////////
+> ////////                     BEGIN ANALYSES FOR EXAMPLE 6                ///////
+> ////////////////////////////////////////////////////////////////////////////////
+> 
+. 
+. display as result "STATA Single-Level Empty Model"
+STATA Single-Level Empty Model
+
+. melogit cor ,  intmethod(laplace),
+
+Iteration 0:   log likelihood = -2846.8185  
+Iteration 1:   log likelihood = -2842.8194  
+Iteration 2:   log likelihood = -2842.8162  
+Iteration 3:   log likelihood = -2842.8162  
+
+Logistic regression                             Number of obs     =      5,426
+
+                                                Wald chi2(0)      =          .
+Log likelihood = -2842.8162                     Prob > chi2       =          .
+------------------------------------------------------------------------------
+         cor |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+       _cons |    1.27938   .0328985    38.89   0.000       1.2149     1.34386
+------------------------------------------------------------------------------
+
+. nlcom 1/(1+exp(-1*(_b[_cons]))) // fixed intercept in probability
+
+       _nl_1:  1/(1+exp(-1*(_b[_cons])))
+
+------------------------------------------------------------------------------
+         cor |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+       _nl_1 |   .7823443    .005602   139.65   0.000     .7713645     .793324
+------------------------------------------------------------------------------
+
+. 
+. display as result "STATA Random Subjects, Empty Items Model"
+STATA Random Subjects, Empty Items Model
+
+. melogit cor , || partid: , covariance(unstructured) intmethod(laplace),
+
+Fitting fixed-effects model:
+
+Iteration 0:   log likelihood = -2846.8185  
+Iteration 1:   log likelihood = -2842.8194  
+Iteration 2:   log likelihood = -2842.8162  
+Iteration 3:   log likelihood = -2842.8162  
+
+Refining starting values:
+
+Grid node 0:   log likelihood = -2828.2329
+
+Fitting full model:
+
+Iteration 0:   log likelihood = -2828.2329  (not concave)
+Iteration 1:   log likelihood = -2800.7862  
+Iteration 2:   log likelihood = -2800.2434  
+Iteration 3:   log likelihood = -2800.2242  
+Iteration 4:   log likelihood = -2800.2242  
+
+Mixed-effects logistic regression               Number of obs     =      5,426
+Group variable:          partid                 Number of groups  =        155
+
+                                                Obs per group:
+                                                              min =         29
+                                                              avg =       35.0
+                                                              max =         36
+
+Integration method:     laplace
+
+                                                Wald chi2(0)      =          .
+Log likelihood = -2800.2242                     Prob > chi2       =          .
+------------------------------------------------------------------------------
+         cor |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+       _cons |   1.348682   .0536691    25.13   0.000     1.243493    1.453872
+-------------+----------------------------------------------------------------
+partid       |
+   var(_cons)|   .2523894   .0503252                       .170744    .3730754
+------------------------------------------------------------------------------
+LR test vs. logistic model: chibar2(01) = 85.18       Prob >= chibar2 = 0.0000
+
+. nlcom 1/(1+exp(-1*(_b[_cons]))) // fixed intercept in probability
+
+       _nl_1:  1/(1+exp(-1*(_b[_cons])))
+
+------------------------------------------------------------------------------
+         cor |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+       _nl_1 |   .7939141    .008781    90.41   0.000     .7767036    .8111246
+------------------------------------------------------------------------------
+
+. 
+. display as result "STATA Random Subjects, LLTM-Predicted Fixed Items Model"
+STATA Random Subjects, LLTM-Predicted Fixed Items Model
+
+. melogit cor rclut rrel rbrit legsign, || partid: , covariance(unstructured) intmethod(laplace)
+
+Fitting fixed-effects model:
+
+Iteration 0:   log likelihood = -2770.4536  
+Iteration 1:   log likelihood = -2765.5626  
+Iteration 2:   log likelihood = -2765.5591  
+Iteration 3:   log likelihood = -2765.5591  
+
+Refining starting values:
+
+Grid node 0:   log likelihood = -2745.7342
+
+Fitting full model:
+
+Iteration 0:   log likelihood = -2745.7342  (not concave)
+Iteration 1:   log likelihood = -2720.3831  
+Iteration 2:   log likelihood = -2719.8999  
+Iteration 3:   log likelihood = -2719.8985  
+Iteration 4:   log likelihood = -2719.8985  
+
+Mixed-effects logistic regression               Number of obs     =      5,426
+Group variable:          partid                 Number of groups  =        155
+
+                                                Obs per group:
+                                                              min =         29
+                                                              avg =       35.0
+                                                              max =         36
+
+Integration method:     laplace
+
+                                                Wald chi2(4)      =     152.06
+Log likelihood = -2719.8985                     Prob > chi2       =     0.0000
+------------------------------------------------------------------------------
+         cor |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+       rclut |  -.2675055   .0554835    -4.82   0.000    -.3762512   -.1587599
+        rrel |   .2204415   .0993627     2.22   0.027     .0256941    .4151889
+       rbrit |   .4742147   .1129383     4.20   0.000     .2528597    .6955696
+     legsign |   .6621279   .0822266     8.05   0.000     .5009668    .8232891
+       _cons |    .861864   .1528906     5.64   0.000      .562204    1.161524
+-------------+----------------------------------------------------------------
+partid       |
+   var(_cons)|   .2734316   .0536033                      .1862001    .4015295
+------------------------------------------------------------------------------
+LR test vs. logistic model: chibar2(01) = 91.32       Prob >= chibar2 = 0.0000
+
+. 
+. display as result "STATA Random Subjects, Rasch Saturated Fixed Items Model"
+STATA Random Subjects, Rasch Saturated Fixed Items Model
+
+. melogit cor i.picture, || partid: , covariance(unstructured) intmethod(laplace)
+
+Fitting fixed-effects model:
+
+Iteration 0:   log likelihood = -2538.0903  
+Iteration 1:   log likelihood =  -2513.429  
+Iteration 2:   log likelihood = -2512.8183  
+Iteration 3:   log likelihood = -2512.8161  
+Iteration 4:   log likelihood = -2512.8161  
+
+Refining starting values:
+
+Grid node 0:   log likelihood = -2472.5971
+
+Fitting full model:
+
+Iteration 0:   log likelihood = -2472.5971  (not concave)
+Iteration 1:   log likelihood =  -2457.508  
+Iteration 2:   log likelihood = -2454.0594  
+Iteration 3:   log likelihood =   -2453.75  
+Iteration 4:   log likelihood = -2453.7428  
+Iteration 5:   log likelihood = -2453.7428  
+
+Mixed-effects logistic regression               Number of obs     =      5,426
+Group variable:          partid                 Number of groups  =        155
+
+                                                Obs per group:
+                                                              min =         29
+                                                              avg =       35.0
+                                                              max =         36
+
+Integration method:     laplace
+
+                                                Wald chi2(35)     =     539.39
+Log likelihood = -2453.7428                     Prob > chi2       =     0.0000
+------------------------------------------------------------------------------
+         cor |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+     picture |
+          6  |   3.133946    .453938     6.90   0.000     2.244244    4.023648
+          7  |   .9158302   .2578338     3.55   0.000     .4104852    1.421175
+         10  |   1.998803   .3135994     6.37   0.000      1.38416    2.613447
+         11  |   .7345518   .2525708     2.91   0.004     .2395221    1.229582
+         13  |  -.1156162   .2410041    -0.48   0.631    -.5879756    .3567432
+         22  |   1.047351   .2632922     3.98   0.000      .531308    1.563394
+         23  |   2.694168   .3879207     6.95   0.000     1.933858    3.454479
+         26  |   .8019251   .2546255     3.15   0.002     .3028682    1.300982
+         33  |   1.409212   .2778527     5.07   0.000     .8646306    1.953793
+         35  |    1.08003   .2648106     4.08   0.000     .5610104    1.599049
+         42  |   .7160705   .2533035     2.83   0.005     .2196047    1.212536
+         52  |   2.483986   .3611394     6.88   0.000     1.776166    3.191806
+         59  |    2.02671   .3198374     6.34   0.000      1.39984     2.65358
+         61  |   .6577948   .2531366     2.60   0.009     .1616562    1.153933
+         62  |  -.5588471    .243792    -2.29   0.022    -1.036671   -.0810235
+         66  |   2.301775    .341195     6.75   0.000     1.633045    2.970505
+         97  |   1.144304   .2657053     4.31   0.000     .6235311    1.665077
+        117  |   2.831734    .405354     6.99   0.000     2.037255    3.626213
+        123  |   2.135149   .3259043     6.55   0.000     1.496388    2.773909
+        128  |    .917096   .2577873     3.56   0.000     .4118422     1.42235
+        135  |   3.140104    .453937     6.92   0.000     2.250404    4.029804
+        136  |   1.043117   .2658985     3.92   0.000     .5219652    1.564268
+        137  |   1.263897   .2713408     4.66   0.000     .7320789    1.795715
+        140  |   .1511991   .2442321     0.62   0.536    -.3274871    .6298853
+        146  |   1.560535   .2856438     5.46   0.000     1.000684    2.120387
+        152  |   .5078832   .2490959     2.04   0.041     .0196643    .9961022
+        155  |  -.4393569   .2424057    -1.81   0.070    -.9144634    .0357495
+        161  |   2.676772   .3882829     6.89   0.000     1.915751    3.437792
+        162  |   2.806337   .4055811     6.92   0.000     2.011413    3.601261
+        171  |   1.344988   .2751862     4.89   0.000     .8056327    1.884343
+        172  |   .6314453   .2518386     2.51   0.012     .1378508     1.12504
+        173  |   2.987269   .4267348     7.00   0.000     2.150884    3.823654
+        174  |   1.463194   .2802621     5.22   0.000     .9138906    2.012498
+        177  |   .6672022   .2508252     2.66   0.008     .1755937    1.158811
+        179  |   1.554587   .2857549     5.44   0.000     .9945172    2.114656
+             |
+       _cons |   .2305714   .1781457     1.29   0.196    -.1185879    .5797306
+-------------+----------------------------------------------------------------
+partid       |
+   var(_cons)|   .3677795   .0679383                      .2560642    .5282339
+------------------------------------------------------------------------------
+LR test vs. logistic model: chibar2(01) = 118.15      Prob >= chibar2 = 0.0000
+
+.         margins i.picture, predict(xb)  // Get logit intercept per item
+
+Adjusted predictions                            Number of obs     =      5,426
+Model VCE    : OIM
+
+Expression   : Linear prediction, fixed portion only, predict(xb)
+
+------------------------------------------------------------------------------
+             |            Delta-method
+             |     Margin   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+     picture |
+          2  |   .2305714   .1781457     1.29   0.196    -.1185879    .5797306
+          6  |   3.364517   .4232866     7.95   0.000     2.534891    4.194144
+          7  |   1.146402   .1988824     5.76   0.000     .7565992    1.536204
+         10  |   2.229375   .2672971     8.34   0.000     1.705482    2.753267
+         11  |   .9651232   .1919824     5.03   0.000     .5888447    1.341402
+         13  |   .1149552   .1763744     0.65   0.515    -.2307323    .4606427
+         22  |   1.277923    .205951     6.20   0.000     .8742659    1.681579
+         23  |    2.92474   .3515552     8.32   0.000     2.235704    3.613775
+         26  |   1.032496   .1947251     5.30   0.000     .6508422    1.414151
+         33  |   1.639783   .2242548     7.31   0.000     1.200252    2.079315
+         35  |   1.310601   .2078475     6.31   0.000     .9032274    1.717975
+         42  |   .9466418   .1929465     4.91   0.000     .5684735     1.32481
+         52  |   2.714557   .3217786     8.44   0.000     2.083883    3.345232
+         59  |   2.257282   .2746042     8.22   0.000     1.719067    2.795496
+         61  |   .8883662   .1927276     4.61   0.000     .5106269    1.266105
+         62  |  -.3282757   .1800834    -1.82   0.068    -.6812326    .0246812
+         66  |   2.532346   .2992028     8.46   0.000      1.94592    3.118773
+         97  |   1.374875   .2089984     6.58   0.000     .9652459    1.784505
+        117  |   3.062305   .3707053     8.26   0.000     2.335736    3.788874
+        123  |    2.36572   .2816564     8.40   0.000     1.813684    2.917756
+        128  |   1.147667     .19886     5.77   0.000      .757909    1.537426
+        135  |   3.370675   .4232883     7.96   0.000     2.541046    4.200305
+        136  |   1.273688   .2092467     6.09   0.000      .863572    1.683804
+        137  |   1.494468   .2161187     6.92   0.000     1.070883    1.918053
+        140  |   .3817705   .1808702     2.11   0.035     .0272715    .7362694
+        146  |   1.791107   .2338438     7.66   0.000     1.332781    2.249432
+        152  |   .7384546   .1874036     3.94   0.000     .3711502    1.105759
+        155  |  -.2087856   .1782736    -1.17   0.242    -.5581954    .1406242
+        161  |   2.907343   .3519519     8.26   0.000      2.21753    3.597156
+        162  |   3.036908   .3709679     8.19   0.000     2.309824    3.763992
+        171  |   1.575559   .2209715     7.13   0.000     1.142463    2.008655
+        172  |   .8620167   .1910429     4.51   0.000     .4875794    1.236454
+        173  |    3.21784   .3939748     8.17   0.000     2.445664    3.990017
+        174  |   1.693766    .227245     7.45   0.000     1.248374    2.139158
+        177  |   .8977735   .1897079     4.73   0.000     .5259528    1.269594
+        179  |   1.785158   .2340144     7.63   0.000     1.326498    2.243818
+------------------------------------------------------------------------------
+
+.           
+. display as result "STATA Random Subjects, Random Items Empty Model"
+STATA Random Subjects, Random Items Empty Model
+
+. melogit cor , || _all: R.picture || partid: , covariance(unstructured) intmethod(laplace)
+
+Fitting fixed-effects model:
+
+Iteration 0:   log likelihood = -2846.8185  
+Iteration 1:   log likelihood = -2842.8194  
+Iteration 2:   log likelihood = -2842.8162  
+Iteration 3:   log likelihood = -2842.8162  
+
+Refining starting values:
+
+Grid node 0:   log likelihood = -2542.7402
+
+Fitting full model:
+
+Iteration 0:   log likelihood = -2542.7402  (not concave)
+Iteration 1:   log likelihood =  -2531.525  (not concave)
+Iteration 2:   log likelihood =  -2529.323  (not concave)
+Iteration 3:   log likelihood = -2529.1107  
+Iteration 4:   log likelihood = -2525.6145  (not concave)
+Iteration 5:   log likelihood = -2525.3807  (not concave)
+Iteration 6:   log likelihood = -2525.3579  
+Iteration 7:   log likelihood =  -2525.351  (not concave)
+Iteration 8:   log likelihood = -2525.3503  
+Iteration 9:   log likelihood = -2525.3482  (not concave)
+Iteration 10:  log likelihood =  -2525.348  (not concave)
+Iteration 11:  log likelihood =  -2525.348  
+Iteration 12:  log likelihood = -2525.3461  (not concave)
+Iteration 13:  log likelihood = -2525.3459  
+Iteration 14:  log likelihood = -2525.3441  (not concave)
+Iteration 15:  log likelihood = -2525.3439  (not concave)
+Iteration 16:  log likelihood = -2525.3439  (not concave)
+Iteration 17:  log likelihood = -2525.3439  (not concave)
+Iteration 18:  log likelihood = -2525.3439  (not concave)
+Iteration 19:  log likelihood = -2525.3438  (not concave)
+Iteration 20:  log likelihood = -2525.3438  
+Iteration 21:  log likelihood = -2525.3421  
+Iteration 22:  log likelihood = -2525.3407  (not concave)
+Iteration 23:  log likelihood = -2525.3406  (not concave)
+Iteration 24:  log likelihood = -2525.3405  (not concave)
+Iteration 25:  log likelihood = -2525.3405  
+Iteration 26:  log likelihood = -2525.3388  
+Iteration 27:  log likelihood =  -2525.337  
+Iteration 28:  log likelihood = -2525.3316  
+Iteration 29:  log likelihood = -2525.3301  (not concave)
+Iteration 30:  log likelihood =   -2525.33  
+Iteration 31:  log likelihood = -2525.3283  (not concave)
+Iteration 32:  log likelihood = -2525.3281  (not concave)
+Iteration 33:  log likelihood = -2525.3281  
+Iteration 34:  log likelihood = -2525.3264  
+Iteration 35:  log likelihood = -2525.0327  
+Iteration 36:  log likelihood = -2524.9352  (not concave)
+Iteration 37:  log likelihood = -2524.9271  
+Iteration 38:  log likelihood = -2524.9206  
+Iteration 39:  log likelihood = -2524.9199  
+Iteration 40:  log likelihood = -2524.9199  
+
+Mixed-effects logistic regression               Number of obs     =      5,426
+
+-------------------------------------------------------------
+                |     No. of       Observations per Group
+ Group Variable |     Groups    Minimum    Average    Maximum
+----------------+--------------------------------------------
+           _all |          1      5,426    5,426.0      5,426
+         partid |        155         29       35.0         36
+-------------------------------------------------------------
+
+Integration method:     laplace
+
+                                                Wald chi2(0)      =          .
+Log likelihood = -2524.9199                     Prob > chi2       =          .
+------------------------------------------------------------------------------
+         cor |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+       _cons |   1.592755   .1750156     9.10   0.000     1.249731    1.935779
+-------------+----------------------------------------------------------------
+_all>picture |
+   var(_cons)|   .9492223   .2422043                      .5756714    1.565169
+-------------+----------------------------------------------------------------
+partid       |
+   var(_cons)|   .3625381   .0673341                      .2519186    .5217315
+------------------------------------------------------------------------------
+LR test vs. logistic model: chi2(2) = 635.79              Prob > chi2 = 0.0000
+
+Note: LR test is conservative and provided only for reference.
+
+. 
+. display as result "STATA Random Subjects, LLTM + Random Items Model"
+STATA Random Subjects, LLTM + Random Items Model
+
+. melogit cor rclut rrel rbrit legsign, || _all: R.picture || partid: , ///
+>         covariance(unstructured) intmethod(laplace)
+
+Fitting fixed-effects model:
+
+Iteration 0:   log likelihood = -2770.4536  
+Iteration 1:   log likelihood = -2765.5626  
+Iteration 2:   log likelihood = -2765.5591  
+Iteration 3:   log likelihood = -2765.5591  
+
+Refining starting values:
+
+Grid node 0:   log likelihood = -2538.3024
+
+Fitting full model:
+
+Iteration 0:   log likelihood = -2538.3024  (not concave)
+Iteration 1:   log likelihood =  -2527.176  (not concave)
+Iteration 2:   log likelihood = -2524.2876  (not concave)
+Iteration 3:   log likelihood =  -2524.009  (not concave)
+Iteration 4:   log likelihood = -2523.9815  
+Iteration 5:   log likelihood = -2520.5092  
+Iteration 6:   log likelihood = -2520.1297  (not concave)
+Iteration 7:   log likelihood = -2520.1056  (not concave)
+Iteration 8:   log likelihood = -2520.1036  (not concave)
+Iteration 9:   log likelihood = -2520.1034  
+Iteration 10:  log likelihood = -2520.1023  (not concave)
+Iteration 11:  log likelihood = -2520.1022  
+Iteration 12:  log likelihood = -2520.1019  
+Iteration 13:  log likelihood = -2520.1019  
+Iteration 14:  log likelihood = -2520.1019  
+Iteration 15:  log likelihood = -2520.1019  (not concave)
+Iteration 16:  log likelihood = -2520.1019  
+
+Mixed-effects logistic regression               Number of obs     =      5,426
+
+-------------------------------------------------------------
+                |     No. of       Observations per Group
+ Group Variable |     Groups    Minimum    Average    Maximum
+----------------+--------------------------------------------
+           _all |          1      5,426    5,426.0      5,426
+         partid |        155         29       35.0         36
+-------------------------------------------------------------
+
+Integration method:     laplace
+
+                                                Wald chi2(4)      =      10.29
+Log likelihood = -2520.1019                     Prob > chi2       =     0.0357
+------------------------------------------------------------------------------
+         cor |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+       rclut |  -.3238321   .2643166    -1.23   0.221    -.8418831     .194219
+        rrel |   .0374436   .8570904     0.04   0.965    -1.642423     1.71731
+       rbrit |   .7893573   .7888473     1.00   0.317    -.7567549    2.335469
+     legsign |   .7387114   .3544143     2.08   0.037     .0440722    1.433351
+       _cons |   1.309998   1.310336     1.00   0.317    -1.258214     3.87821
+-------------+----------------------------------------------------------------
+_all>picture |
+   var(_cons)|   .7137547   .1881003                      .4258204    1.196387
+-------------+----------------------------------------------------------------
+partid       |
+   var(_cons)|   .3625279   .0684459                      .2503994    .5248675
+------------------------------------------------------------------------------
+LR test vs. logistic model: chi2(2) = 490.91              Prob > chi2 = 0.0000
+
+Note: LR test is conservative and provided only for reference.
+
+.      
+.      
+. // Would not converge    
+. *display as result "Random Subjects, Random Items Models for Correct Responses"
+. *display as result "LLTM Model (Easiness-Predicted Items)"
+. *melogit cor rclut rrel rbrit legsign,,  || _all: R.picture ||  partid: rbrit , ///
+> *        covariance(unstructured) intmethod(laplace)
+.         
+. // STATA models with random slopes are not estimatble correctly 
+. // because covariance(un) is not allowed
+. 
+. 
+. // Close log
+. log close  
+      name:  <unnamed>
+       log:  C:\Dropbox\19_PSQF7375_Clustered\PSQF7375_Clustered_Example6\PSQF7375_Clustered_Example6_STATA_Output.log
+  log type:  text
+ closed on:  15 Nov 2019, 14:51:41
+------------------------------------------------------------------------------------------------------------------------------------------------------

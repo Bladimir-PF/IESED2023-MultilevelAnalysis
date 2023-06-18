@@ -1,0 +1,566 @@
+------------------------------------------------------------------------------------------------------------------------------------------------------
+      name:  STATA_Example5a
+       log:  C:\Dropbox\19_PSQF7375_Clustered\PSQF7375_Clustered_Example3b\PSQF7375_Clustered_Example5a_STATA_Output.log
+  log type:  text
+ opened on:   5 Nov 2019, 09:05:49
+
+. 
+. // Label existing variables
+. label variable studentID "studentID: Student ID number"
+
+. label variable schoolID  "schoolID: School ID number"
+
+. label variable frlunch   "frlunch: Student Free/Reduced Lunch 0=No 1=Yes"
+
+. label variable math      "math: Student Free/Reduced Lunch 0=No 1=Yes"
+
+. 
+. // Get school means of variables and label them
+. egen SMfrlunch   = mean(frlunch),   by (schoolID)
+
+. egen SMmath      = mean(math),      by (schoolID)
+
+. label variable SMfrlunch "SMfrlunch: School Mean 0=No, 1=Free/Reduced Lunch"
+
+. label variable SMmath    "SMmath: School Mean Math Outcome"
+
+. 
+. // Get number of students per school
+. egen Nperschool = count(studentID), by (schoolID)
+
+. label variable Nperschool "Nperschool: # Students Contributing Data" 
+
+. 
+. // Center school mean math
+. gen SMmath50 = (SMmath-50)/10
+
+. label variable SMmath50 "SMmath: School Mean Math (0=5)"
+
+. 
+. // Center to get within-school math
+. gen WSmath = (math-SMmath)/10
+
+. label variable SMmath "WSmath: Within-School Math (0=SM)"
+
+. 
+. // Drop schools with <= 30 students
+. drop if Nperschool < 31
+(2,744 observations deleted)
+
+. 
+. display as result "STATA School-Level Descriptives"
+STATA School-Level Descriptives
+
+. preserve  // Save for later use, then compute school-level dataset
+
+. collapse  Nperschool SMfrlunch SMmath, by(schoolID)
+
+. format    Nperschool SMfrlunch SMmath  %4.2f
+
+. summarize Nperschool SMfrlunch SMmath, format
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+  Nperschool |         94      139.17      138.20      31.00     515.00
+   SMfrlunch |         94        0.30        0.21       0.00       0.80
+      SMmath |         94       47.73        6.97      29.45      61.61
+
+. restore   // Go back to student-level dataset
+
+. 
+. display as result "STATA Student-Level Descriptives"
+STATA Student-Level Descriptives
+
+. format    math frlunch %4.2f
+
+. summarize math frlunch, format
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+        math |     13,082       48.12       17.26       0.00      83.00
+     frlunch |     13,082        0.31        0.46       0.00       1.00
+
+. 
+. ////////////////////////////////////////////////////////////////////////////////
+> ////////                 BEGIN ANALYSES FOR EXAMPLE 5A                   ///////
+> ////////////////////////////////////////////////////////////////////////////////
+> 
+. // Add option "or" to model options in melogit get odds ratios for fixed effects
+. 
+. display as result "STATA Model 1: Empty Means, Single-Level Logistic Model Predicting FRlunch"
+STATA Model 1: Empty Means, Single-Level Logistic Model Predicting FRlunch
+
+. melogit frlunch ,  
+
+Iteration 0:   log likelihood = -8094.1725  
+Iteration 1:   log likelihood = -8072.9622  
+Iteration 2:   log likelihood = -8072.9469  
+Iteration 3:   log likelihood = -8072.9469  
+
+Logistic regression                             Number of obs     =     13,082
+
+                                                Wald chi2(0)      =          .
+Log likelihood = -8072.9469                     Prob > chi2       =          .
+------------------------------------------------------------------------------
+     frlunch |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+       _cons |  -.8117308   .0189462   -42.84   0.000    -.8488647    -.774597
+------------------------------------------------------------------------------
+
+.         estat ic, n(94), // getting AIC and BIC equivalent to SAS
+
+Akaike's information criterion and Bayesian information criterion
+
+-----------------------------------------------------------------------------
+       Model |          N   ll(null)  ll(model)      df        AIC        BIC
+-------------+---------------------------------------------------------------
+           . |         94          .  -8072.947       1   16147.89   16150.44
+-----------------------------------------------------------------------------
+
+.         nlcom 1/(1+exp(-1*(_b[_cons]))) // fixed intercept in probability
+
+       _nl_1:  1/(1+exp(-1*(_b[_cons])))
+
+------------------------------------------------------------------------------
+     frlunch |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+       _nl_1 |   .3075218   .0040346    76.22   0.000     .2996141    .3154295
+------------------------------------------------------------------------------
+
+. 
+. display as result "STATA Model 2: Empty Means, Two-Level Logistic Model Predicting FRlunch"
+STATA Model 2: Empty Means, Two-Level Logistic Model Predicting FRlunch
+
+. melogit frlunch,  ||  schoolID:  , covariance(unstructured) intpoints(15),
+
+Fitting fixed-effects model:
+
+Iteration 0:   log likelihood = -8094.1725  
+Iteration 1:   log likelihood = -8072.9622  
+Iteration 2:   log likelihood = -8072.9469  
+Iteration 3:   log likelihood = -8072.9469  
+
+Refining starting values:
+
+Grid node 0:   log likelihood = -6599.4741
+
+Fitting full model:
+
+Iteration 0:   log likelihood = -6599.4741  
+Iteration 1:   log likelihood = -6587.3319  
+Iteration 2:   log likelihood = -6586.2267  
+Iteration 3:   log likelihood = -6586.2151  
+Iteration 4:   log likelihood = -6586.2151  
+
+Mixed-effects logistic regression               Number of obs     =     13,082
+Group variable:        schoolID                 Number of groups  =         94
+
+                                                Obs per group:
+                                                              min =         31
+                                                              avg =      139.2
+                                                              max =        515
+
+Integration method: mvaghermite                 Integration pts.  =         15
+
+                                                Wald chi2(0)      =          .
+Log likelihood = -6586.2151                     Prob > chi2       =          .
+------------------------------------------------------------------------------
+     frlunch |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+       _cons |  -1.172111   .1493709    -7.85   0.000    -1.464872   -.8793492
+-------------+----------------------------------------------------------------
+schoolID     |
+   var(_cons)|    1.95454   .3315289                      1.401729    2.725369
+------------------------------------------------------------------------------
+LR test vs. logistic model: chibar2(01) = 2973.46     Prob >= chibar2 = 0.0000
+
+.         estat ic, n(94),
+
+Akaike's information criterion and Bayesian information criterion
+
+-----------------------------------------------------------------------------
+       Model |          N   ll(null)  ll(model)      df        AIC        BIC
+-------------+---------------------------------------------------------------
+           . |         94          .  -6586.215       2   13176.43   13181.52
+-----------------------------------------------------------------------------
+
+.         nlcom 1/(1+exp(-1*(_b[_cons]))) // fixed intercept in probability
+
+       _nl_1:  1/(1+exp(-1*(_b[_cons])))
+
+------------------------------------------------------------------------------
+     frlunch |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+       _nl_1 |   .2364737   .0269695     8.77   0.000     .1836144    .2893329
+------------------------------------------------------------------------------
+
+.      
+. display as result "STATA Model 3: Add Level-2 Fixed Effect of School Mean Math"
+STATA Model 3: Add Level-2 Fixed Effect of School Mean Math
+
+. melogit frlunch c.SMmath50,  ||  schoolID:  , covariance(unstructured) intpoints(15) or,
+
+Fitting fixed-effects model:
+
+Iteration 0:   log likelihood = -6895.7131  
+Iteration 1:   log likelihood = -6890.4841  
+Iteration 2:   log likelihood = -6890.4786  
+Iteration 3:   log likelihood = -6890.4786  
+
+Refining starting values:
+
+Grid node 0:   log likelihood = -6555.0272
+
+Fitting full model:
+
+Iteration 0:   log likelihood = -6555.0272  
+Iteration 1:   log likelihood = -6551.8433  
+Iteration 2:   log likelihood = -6551.6134  
+Iteration 3:   log likelihood = -6551.6122  
+Iteration 4:   log likelihood = -6551.6122  
+
+Mixed-effects logistic regression               Number of obs     =     13,082
+Group variable:        schoolID                 Number of groups  =         94
+
+                                                Obs per group:
+                                                              min =         31
+                                                              avg =      139.2
+                                                              max =        515
+
+Integration method: mvaghermite                 Integration pts.  =         15
+
+                                                Wald chi2(1)      =     105.81
+Log likelihood = -6551.6122                     Prob > chi2       =     0.0000
+------------------------------------------------------------------------------
+     frlunch | Odds Ratio   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+    SMmath50 |   .2362435   .0331377   -10.29   0.000     .1794578    .3109979
+       _cons |   .2300241   .0239227   -14.13   0.000     .1876064    .2820324
+-------------+----------------------------------------------------------------
+schoolID     |
+   var(_cons)|   .7657131   .1448336                      .5285212    1.109353
+------------------------------------------------------------------------------
+Note: Estimates are transformed only in the first equation.
+Note: _cons estimates baseline odds (conditional on zero random effects).
+LR test vs. logistic model: chibar2(01) = 677.73      Prob >= chibar2 = 0.0000
+
+.         estat ic, n(94),
+
+Akaike's information criterion and Bayesian information criterion
+
+-----------------------------------------------------------------------------
+       Model |          N   ll(null)  ll(model)      df        AIC        BIC
+-------------+---------------------------------------------------------------
+           . |         94          .  -6551.612       3   13109.22   13116.85
+-----------------------------------------------------------------------------
+
+.         margins , at(c.SMmath50=(-1(1)1)) predict(xb) // unit-specific logits
+
+Adjusted predictions                            Number of obs     =     13,082
+Model VCE    : OIM
+
+Expression   : Linear prediction, fixed portion only, predict(xb)
+
+1._at        : SMmath50        =          -1
+
+2._at        : SMmath50        =           0
+
+3._at        : SMmath50        =           1
+
+------------------------------------------------------------------------------
+             |            Delta-method
+             |     Margin   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         _at |
+          1  |   -.026679   .1421122    -0.19   0.851    -.3052137    .2518557
+          2  |  -1.469571   .1040009   -14.13   0.000    -1.673409   -1.265733
+          3  |  -2.912463   .2019593   -14.42   0.000    -3.308296   -2.516631
+------------------------------------------------------------------------------
+
+.         margins , at(c.SMmath50=(-1(1)1))             // marginal probabilities
+
+Adjusted predictions                            Number of obs     =     13,082
+Model VCE    : OIM
+
+Expression   : Marginal predicted mean, predict()
+
+1._at        : SMmath50        =          -1
+
+2._at        : SMmath50        =           0
+
+3._at        : SMmath50        =           1
+
+------------------------------------------------------------------------------
+             |            Delta-method
+             |     Margin   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         _at |
+          1  |     .49428   .0304623    16.23   0.000      .434575     .553985
+          2  |   .2182167   .0159273    13.70   0.000     .1869999    .2494336
+          3  |   .0692004   .0123997     5.58   0.000     .0448975    .0935034
+------------------------------------------------------------------------------
+
+. 
+. display as result "STATA Model 4: Add Level-1 Fixed Effect of Group-MC Student Math"
+STATA Model 4: Add Level-1 Fixed Effect of Group-MC Student Math
+
+. melogit frlunch c.SMmath50 c.WSmath,  ||  schoolID:  , covariance(unstructured) intpoints(15),
+
+Fitting fixed-effects model:
+
+Iteration 0:   log likelihood = -6577.5399  
+Iteration 1:   log likelihood = -6553.7663  
+Iteration 2:   log likelihood = -6553.7351  
+Iteration 3:   log likelihood = -6553.7351  
+
+Refining starting values:
+
+Grid node 0:   log likelihood = -6199.3402
+
+Fitting full model:
+
+Iteration 0:   log likelihood = -6199.3402  
+Iteration 1:   log likelihood = -6196.6858  
+Iteration 2:   log likelihood = -6195.3541  
+Iteration 3:   log likelihood = -6195.3362  
+Iteration 4:   log likelihood = -6195.3361  
+
+Mixed-effects logistic regression               Number of obs     =     13,082
+Group variable:        schoolID                 Number of groups  =         94
+
+                                                Obs per group:
+                                                              min =         31
+                                                              avg =      139.2
+                                                              max =        515
+
+Integration method: mvaghermite                 Integration pts.  =         15
+
+                                                Wald chi2(2)      =     746.30
+Log likelihood = -6195.3361                     Prob > chi2       =     0.0000
+------------------------------------------------------------------------------
+     frlunch |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+    SMmath50 |  -1.517403   .1466537   -10.35   0.000    -1.804839   -1.229967
+      WSmath |  -.3719921   .0144957   -25.66   0.000    -.4004033    -.343581
+       _cons |  -1.559796   .1088066   -14.34   0.000    -1.773053   -1.346538
+-------------+----------------------------------------------------------------
+schoolID     |
+   var(_cons)|   .8414417   .1575842                      .5829241    1.214608
+------------------------------------------------------------------------------
+LR test vs. logistic model: chibar2(01) = 716.80      Prob >= chibar2 = 0.0000
+
+.         estat ic, n(94),
+
+Akaike's information criterion and Bayesian information criterion
+
+-----------------------------------------------------------------------------
+       Model |          N   ll(null)  ll(model)      df        AIC        BIC
+-------------+---------------------------------------------------------------
+           . |         94          .  -6195.336       4   12398.67   12408.85
+-----------------------------------------------------------------------------
+
+.         estimates store FixMath,             // save LL for LRT
+
+.         lincom c.WSmath*-1 + c.SMmath50*1    // Between-School Contextual Effect of Math
+
+ ( 1)  [frlunch]SMmath50 - [frlunch]WSmath = 0
+
+------------------------------------------------------------------------------
+     frlunch |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         (1) |  -1.145411    .146813    -7.80   0.000    -1.433159   -.8576628
+------------------------------------------------------------------------------
+
+.     
+. display as result "STATA Model 5: Add Random Effect of Group-MC Student Math"
+STATA Model 5: Add Random Effect of Group-MC Student Math
+
+. melogit frlunch c.SMmath50 c.WSmath,  ||  schoolID: WSmath, ///
+>            covariance(unstructured) intpoints(15),
+
+Fitting fixed-effects model:
+
+Iteration 0:   log likelihood = -6577.5399  
+Iteration 1:   log likelihood = -6553.7663  
+Iteration 2:   log likelihood = -6553.7351  
+Iteration 3:   log likelihood = -6553.7351  
+
+Refining starting values:
+
+Grid node 0:   log likelihood = -6277.6039
+
+Fitting full model:
+
+Iteration 0:   log likelihood = -6277.6039  (not concave)
+Iteration 1:   log likelihood = -6268.4943  (not concave)
+Iteration 2:   log likelihood = -6228.9341  (not concave)
+Iteration 3:   log likelihood = -6213.8729  (not concave)
+Iteration 4:   log likelihood = -6201.9015  (not concave)
+Iteration 5:   log likelihood = -6194.3825  (not concave)
+Iteration 6:   log likelihood = -6192.3206  (not concave)
+Iteration 7:   log likelihood = -6189.4977  (not concave)
+Iteration 8:   log likelihood = -6180.8061  
+Iteration 9:   log likelihood = -6176.1754  
+Iteration 10:  log likelihood = -6176.0056  
+Iteration 11:  log likelihood = -6176.0038  
+Iteration 12:  log likelihood = -6176.0038  
+
+Mixed-effects logistic regression               Number of obs     =     13,082
+Group variable:        schoolID                 Number of groups  =         94
+
+                                                Obs per group:
+                                                              min =         31
+                                                              avg =      139.2
+                                                              max =        515
+
+Integration method: mvaghermite                 Integration pts.  =         15
+
+                                                Wald chi2(2)      =     319.80
+Log likelihood = -6176.0038                     Prob > chi2       =     0.0000
+-----------------------------------------------------------------------------------
+          frlunch |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+------------------+----------------------------------------------------------------
+         SMmath50 |  -1.561701   .1477377   -10.57   0.000    -1.851261    -1.27214
+           WSmath |  -.3434345   .0242465   -14.16   0.000    -.3909567   -.2959123
+            _cons |  -1.566571   .1076207   -14.56   0.000    -1.777503   -1.355638
+------------------+----------------------------------------------------------------
+schoolID          |
+       var(WSmath)|   .0160757     .00543                      .0082919    .0311662
+        var(_cons)|   .8117913   .1539872                      .5597339    1.177354
+------------------+----------------------------------------------------------------
+schoolID          |
+ cov(WSmath,_cons)|  -.0352369    .029054    -1.21   0.225    -.0921818    .0217079
+-----------------------------------------------------------------------------------
+LR test vs. logistic model: chi2(3) = 755.46              Prob > chi2 = 0.0000
+
+Note: LR test is conservative and provided only for reference.
+
+.         estat ic, n(94),
+
+Akaike's information criterion and Bayesian information criterion
+
+-----------------------------------------------------------------------------
+       Model |          N   ll(null)  ll(model)      df        AIC        BIC
+-------------+---------------------------------------------------------------
+           . |         94          .  -6176.004       6   12364.01   12379.27
+-----------------------------------------------------------------------------
+
+.         estimates store RandMath   // save LL for LRT
+
+.         lrtest RandMath FixMath    // LRT against fixed effect model
+
+Likelihood-ratio test                                 LR chi2(2)  =     38.66
+(Assumption: FixMath nested in RandMath)              Prob > chi2 =    0.0000
+
+Note: The reported degrees of freedom assumes the null hypothesis is not on the boundary of the parameter space.  If this is not true, then the
+      reported test is conservative.
+
+.      
+. display as result "STATA Model 6: Add Intra-Variable Interactions of School Mean Math and GMC Student Math"
+STATA Model 6: Add Intra-Variable Interactions of School Mean Math and GMC Student Math
+
+. melogit frlunch c.SMmath50 c.WSmath c.SMmath50#c.WSmath c.SMmath50#c.SMmath50, ///
+>            ||  schoolID: WSmath, covariance(unstructured) intpoints(15),
+
+Fitting fixed-effects model:
+
+Iteration 0:   log likelihood = -6598.7058  
+Iteration 1:   log likelihood = -6540.4197  
+Iteration 2:   log likelihood = -6539.7055  
+Iteration 3:   log likelihood = -6539.7051  
+
+Refining starting values:
+
+Grid node 0:   log likelihood = -6276.7404
+
+Fitting full model:
+
+Iteration 0:   log likelihood = -6276.7404  (not concave)
+Iteration 1:   log likelihood = -6267.7038  (not concave)
+Iteration 2:   log likelihood = -6238.2695  (not concave)
+Iteration 3:   log likelihood =  -6219.288  (not concave)
+Iteration 4:   log likelihood =  -6212.123  (not concave)
+Iteration 5:   log likelihood = -6202.7879  (not concave)
+Iteration 6:   log likelihood = -6194.1211  (not concave)
+Iteration 7:   log likelihood = -6190.4175  (not concave)
+Iteration 8:   log likelihood = -6188.7516  (not concave)
+Iteration 9:   log likelihood = -6179.1647  
+Iteration 10:  log likelihood = -6174.7174  
+Iteration 11:  log likelihood = -6173.9381  
+Iteration 12:  log likelihood = -6173.9225  
+Iteration 13:  log likelihood = -6173.9224  
+
+Mixed-effects logistic regression               Number of obs     =     13,082
+Group variable:        schoolID                 Number of groups  =         94
+
+                                                Obs per group:
+                                                              min =         31
+                                                              avg =      139.2
+                                                              max =        515
+
+Integration method: mvaghermite                 Integration pts.  =         15
+
+                                                Wald chi2(4)      =     313.72
+Log likelihood = -6173.9224                     Prob > chi2       =     0.0000
+---------------------------------------------------------------------------------------
+              frlunch |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+----------------------+----------------------------------------------------------------
+             SMmath50 |  -1.583297    .199763    -7.93   0.000    -1.974825   -1.191769
+               WSmath |  -.3687664   .0263264   -14.01   0.000    -.4203653   -.3171676
+                      |
+  c.SMmath50#c.WSmath |   -.069635   .0336328    -2.07   0.038    -.1355541   -.0037159
+                      |
+c.SMmath50#c.SMmath50 |  -.0685611   .1760223    -0.39   0.697    -.4135583    .2764362
+                      |
+                _cons |   -1.54604   .1231471   -12.55   0.000    -1.787404   -1.304676
+----------------------+----------------------------------------------------------------
+schoolID              |
+           var(WSmath)|   .0134766   .0049058                      .0066028    .0275065
+            var(_cons)|   .8157032   .1553459                      .5615983    1.184782
+----------------------+----------------------------------------------------------------
+schoolID              |
+     cov(WSmath,_cons)|  -.0277102   .0279772    -0.99   0.322    -.0825445    .0271242
+---------------------------------------------------------------------------------------
+LR test vs. logistic model: chi2(3) = 731.57              Prob > chi2 = 0.0000
+
+Note: LR test is conservative and provided only for reference.
+
+.         estat ic, n(94),
+
+Akaike's information criterion and Bayesian information criterion
+
+-----------------------------------------------------------------------------
+       Model |          N   ll(null)  ll(model)      df        AIC        BIC
+-------------+---------------------------------------------------------------
+           . |         94          .  -6173.922       8   12363.84   12384.19
+-----------------------------------------------------------------------------
+
+.         lincom c.WSmath*-1 + c.SMmath50*1                        // Contextual Math Main Effect
+
+ ( 1)  [frlunch]SMmath50 - [frlunch]WSmath = 0
+
+------------------------------------------------------------------------------
+     frlunch |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         (1) |   -1.21453   .1993694    -6.09   0.000    -1.605287   -.8237735
+------------------------------------------------------------------------------
+
+.         lincom c.SMmath50#c.WSmath*-1 + c.SMmath50#c.SMmath50*1  // Contextual Math Interaction
+
+ ( 1)  - [frlunch]c.SMmath50#c.WSmath + [frlunch]c.SMmath50#c.SMmath50 = 0
+
+------------------------------------------------------------------------------
+     frlunch |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         (1) |   .0010739   .1772221     0.01   0.995     -.346275    .3484229
+------------------------------------------------------------------------------
+
+. 
+. 
+. // Close log
+. log close STATA_Example5a 
+      name:  STATA_Example5a
+       log:  C:\Dropbox\19_PSQF7375_Clustered\PSQF7375_Clustered_Example3b\PSQF7375_Clustered_Example5a_STATA_Output.log
+  log type:  text
+ closed on:   5 Nov 2019, 09:06:49
+------------------------------------------------------------------------------------------------------------------------------------------------------

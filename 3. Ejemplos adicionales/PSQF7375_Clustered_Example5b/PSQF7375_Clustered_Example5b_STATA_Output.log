@@ -1,0 +1,1203 @@
+------------------------------------------------------------------------------------------------------------------------------------------------------
+      name:  STATA_Example5b
+       log:  C:\Dropbox\19_PSQF7375_Clustered\PSQF7375_Clustered_Example5b\PSQF7375_Clustered_Example5b_STATA_Output.log
+  log type:  text
+ opened on:   5 Nov 2019, 09:17:08
+
+. 
+. // Label existing variables
+. label variable region  "region: Region Nesting Variable"
+
+. label variable deaths  "deaths: Count of Deaths"
+
+. label variable uv      "uv: Amount of UV Exposure"
+
+. 
+. // Select cases complete for analysis variables
+. egen nmiss=rowmiss(region deaths uv nation)
+
+. drop if nmiss>0
+(0 observations deleted)
+
+. drop if nation==8 // remove Luxemburg because N=3
+(3 observations deleted)
+
+. 
+. // Get region means of variables and label them
+. egen RMdeaths = mean(deaths), by(region)
+
+. egen RMuv     = mean(uv),     by(region)
+
+. label variable RMdeaths "RMdeaths: Region Mean of Death Count"
+
+. label variable RMuv     "RMuv: Region Mean of UV Exposure"
+
+. 
+. // Get count per region and label it
+. egen Nperregion = count(deaths), by(region)
+
+. label variable Nperregion "Nperregion: Count per Region"
+
+. 
+. // Center region mean uv (uncentered, but remember to center it)
+. gen RMuv0 = RMuv
+
+. label variable RMuv0 "RMuv0: Region Mean of UV Exposure (0=0)"
+
+. 
+. // Center to get within-region deaths and UV
+. gen WRdeaths = deaths - RMdeaths
+
+. gen WRuv = uv - RMuv
+
+. label variable WRdeaths "WRdeaths: Within-Region Deaths (0=RM)"
+
+. label variable WRuv "WRuv: Within-Region UV Exposure (0=RM)"
+
+. 
+. display as result "STATA Region-Level Descriptives"
+STATA Region-Level Descriptives
+
+. preserve  // Save for later use, then compute region-level dataset
+
+. collapse  Nperregion RMdeaths RMuv, by(region)
+
+. format    Nperregion RMdeaths RMuv  %4.2f
+
+. summarize Nperregion RMdeaths RMuv, format
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+  Nperregion |         77        4.56        2.63       1.00      13.00
+    RMdeaths |         77       33.20       35.98       1.20     160.00
+        RMuv |         77       -0.15        4.80      -7.06      12.72
+
+. histogram RMdeaths, percent discrete width(10) start(0)
+(start=0, width=10)
+
+. histogram RMuv, percent discrete width(1) start(-8)
+(start=-8, width=1)
+
+. restore   // Go back to county-level dataset
+
+. 
+. display as result "STATA County-Level Descriptives"
+STATA County-Level Descriptives
+
+. format    deaths WRdeaths uv WRuv %4.2f
+
+. summarize deaths WRdeaths uv WRuv, format
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+      deaths |        351       28.00       38.19       0.00     313.00
+    WRdeaths |        351       -0.00       25.17     -84.00     251.15
+          uv |        351        0.02        4.98      -8.90      13.36
+        WRuv |        351        0.00        0.53      -2.07       1.94
+
+. tabulate  nation // Asking for it here to preserve value labels
+
+     nation |      Freq.     Percent        Cum.
+------------+-----------------------------------
+    Belgium |         11        3.13        3.13
+ W. Germany |         30        8.55       11.68
+    Denmark |         14        3.99       15.67
+     France |         94       26.78       42.45
+         UK |         70       19.94       62.39
+      Italy |         95       27.07       89.46
+    Ireland |         26        7.41       96.87
+Netherlands |         11        3.13      100.00
+------------+-----------------------------------
+      Total |        351      100.00
+
+. histogram deaths, percent discrete width(20) start(0)
+(start=0, width=20)
+
+. histogram WRdeaths, percent discrete width(20) start(-90)
+(start=-90, width=20)
+
+. histogram uv, percent discrete width(1) start(-9)
+(start=-9, width=1)
+
+. histogram WRuv, percent discrete width(0.5) start(-2.50)
+(start=-2.5, width=.5)
+
+. 
+. 
+. ////////////////////////////////////////////////////////////////////////////////
+> ////////                 BEGIN ANALYSES FOR EXAMPLE 5B                   ///////
+> ////////////////////////////////////////////////////////////////////////////////
+> 
+. display as result "STATA Empty Means, Random Intercept Model for UV Exposure (predictor)"
+STATA Empty Means, Random Intercept Model for UV Exposure (predictor)
+
+. mixed uv , /// 
+>          || region: , variance reml covariance(unstructured) dfmethod(satterthwaite),
+Note: single-variable random-effects specification in region equation; covariance structure set to identity
+
+Performing EM optimization: 
+
+Performing gradient-based optimization: 
+
+Iteration 0:   log restricted-likelihood = -530.62841  
+Iteration 1:   log restricted-likelihood = -530.62841  
+
+Computing standard errors:
+
+Computing degrees of freedom:
+
+Mixed-effects REML regression                   Number of obs     =        351
+Group variable: region                          Number of groups  =         77
+
+                                                Obs per group:
+                                                              min =          1
+                                                              avg =        4.6
+                                                              max =         13
+DF method: Satterthwaite                        DF:           min =      76.00
+                                                              avg =      76.00
+                                                              max =      76.00
+
+                                                F(0,     0.00)    =          .
+Log restricted-likelihood = -530.62841          Prob > F          =          .
+
+------------------------------------------------------------------------------
+          uv |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+       _cons |  -.1421795   .5470159    -0.26   0.796    -1.231656    .9472973
+------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------
+  Random-effects Parameters  |   Estimate   Std. Err.     [95% Conf. Interval]
+-----------------------------+------------------------------------------------
+region: Identity             |
+                  var(_cons) |   22.92381   3.735768      16.65602    31.55023
+-----------------------------+------------------------------------------------
+               var(Residual) |   .3623138   .0309502      .3064588     .428349
+------------------------------------------------------------------------------
+LR test vs. linear model: chibar2(01) = 1061.01       Prob >= chibar2 = 0.0000
+
+.       estat ic, n(77), // get AIC and BIC equivalent to SAS
+
+Akaike's information criterion and Bayesian information criterion
+
+-----------------------------------------------------------------------------
+       Model |          N   ll(null)  ll(model)      df        AIC        BIC
+-------------+---------------------------------------------------------------
+           . |         77          .  -530.6284       3   1067.257   1074.288
+-----------------------------------------------------------------------------
+
+.       estat icc        // compute Intraclass Correlation
+
+Intraclass correlation
+
+------------------------------------------------------------------------------
+                       Level |        ICC   Std. Err.     [95% Conf. Interval]
+-----------------------------+------------------------------------------------
+                      region |   .9844408   .0028208      .9778275    .9891036
+------------------------------------------------------------------------------
+
+. 
+. display as result "STATA Model 1a: Empty Means, Single-Level Model for Deaths (outcome)"
+STATA Model 1a: Empty Means, Single-Level Model for Deaths (outcome)
+
+. display as result "Log Link, Poisson Conditional Distribution"
+Log Link, Poisson Conditional Distribution
+
+. mepoisson deaths , 
+
+Iteration 0:   log likelihood = -12668.699  
+Iteration 1:   log likelihood = -6675.9386  
+Iteration 2:   log likelihood = -6624.5788  
+Iteration 3:   log likelihood = -6624.4607  
+Iteration 4:   log likelihood = -6624.4607  
+
+Poisson regression                              Number of obs     =        351
+
+                                                Wald chi2(0)      =          .
+Log likelihood = -6624.4607                     Prob > chi2       =          .
+------------------------------------------------------------------------------
+      deaths |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+       _cons |   3.332205   .0100871   330.34   0.000     3.312434    3.351975
+------------------------------------------------------------------------------
+
+.           estat ic, n(77),     // get AIC and BIC equivalent to SAS
+
+Akaike's information criterion and Bayesian information criterion
+
+-----------------------------------------------------------------------------
+       Model |          N   ll(null)  ll(model)      df        AIC        BIC
+-------------+---------------------------------------------------------------
+           . |         77          .  -6624.461       1   13250.92   13253.27
+-----------------------------------------------------------------------------
+
+.           nlcom exp(_b[_cons]) // fixed intercept in counts
+
+       _nl_1:  exp(_b[_cons])
+
+------------------------------------------------------------------------------
+      deaths |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+       _nl_1 |         28   .2824395    99.14   0.000     27.44643    28.55357
+------------------------------------------------------------------------------
+
+.         
+. display as result "STATA Model 1b: Empty Means, Single-Level Model for Deaths (outcome)"
+STATA Model 1b: Empty Means, Single-Level Model for Deaths (outcome)
+
+. display as result "Log Link, Negative Binomial Conditional Distribution"
+Log Link, Negative Binomial Conditional Distribution
+
+. menbreg deaths , 
+
+Iteration 0:   log likelihood = -1551.7396  
+Iteration 1:   log likelihood = -1526.9527  
+Iteration 2:   log likelihood = -1526.0306  
+Iteration 3:   log likelihood = -1526.0297  
+Iteration 4:   log likelihood = -1526.0297  
+
+Negative binomial regression                    Number of obs     =        351
+Overdispersion:            mean
+
+                                                Wald chi2(0)      =          .
+Log likelihood = -1526.0297                     Prob > chi2       =          .
+------------------------------------------------------------------------------
+      deaths |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+       _cons |   3.332205   .0566603    58.81   0.000     3.221152    3.443257
+-------------+----------------------------------------------------------------
+    /lnalpha |   .0872151   .0709543                     -.0518528    .2262829
+------------------------------------------------------------------------------
+
+.         estat ic, n(77),     // get AIC and BIC equivalent to SAS
+
+Akaike's information criterion and Bayesian information criterion
+
+-----------------------------------------------------------------------------
+       Model |          N   ll(null)  ll(model)      df        AIC        BIC
+-------------+---------------------------------------------------------------
+           . |         77          .   -1526.03       2   3056.059   3060.747
+-----------------------------------------------------------------------------
+
+.         nlcom exp(_b[_cons]) // fixed intercept in counts
+
+       _nl_1:  exp(_b[_cons])
+
+------------------------------------------------------------------------------
+      deaths |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+       _nl_1 |         28   1.586488    17.65   0.000     24.89054    31.10946
+------------------------------------------------------------------------------
+
+.              
+. display as result "STATA Model 2a: Empty Means, Random Intercept Model for Deaths (outcome)"
+STATA Model 2a: Empty Means, Random Intercept Model for Deaths (outcome)
+
+. display as result "Log Link, Poisson Conditional Distribution"
+Log Link, Poisson Conditional Distribution
+
+. mepoisson deaths , || region: , covariance(unstructured) intpoints(15),
+
+Fitting fixed-effects model:
+
+Iteration 0:   log likelihood = -12668.699  
+Iteration 1:   log likelihood = -6675.9386  
+Iteration 2:   log likelihood = -6624.5788  
+Iteration 3:   log likelihood = -6624.4607  
+Iteration 4:   log likelihood = -6624.4607  
+
+Refining starting values:
+
+Grid node 0:   log likelihood = -2844.8904
+
+Refining starting values (unscaled likelihoods):
+
+Grid node 0:   log likelihood = -2844.8904
+
+Fitting full model:
+
+Iteration 0:   log likelihood = -2844.8904  
+Iteration 1:   log likelihood = -2841.9016  
+Iteration 2:   log likelihood = -2841.0096  
+Iteration 3:   log likelihood = -2840.9967  
+Iteration 4:   log likelihood = -2840.9967  
+
+Mixed-effects Poisson regression                Number of obs     =        351
+Group variable:          region                 Number of groups  =         77
+
+                                                Obs per group:
+                                                              min =          1
+                                                              avg =        4.6
+                                                              max =         13
+
+Integration method: mvaghermite                 Integration pts.  =         15
+
+                                                Wald chi2(0)      =          .
+Log likelihood = -2840.9967                     Prob > chi2       =          .
+------------------------------------------------------------------------------
+      deaths |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+       _cons |   3.010706   .1158698    25.98   0.000     2.783605    3.237807
+-------------+----------------------------------------------------------------
+region       |
+   var(_cons)|   1.011642   .1691895                      .7289032    1.404054
+------------------------------------------------------------------------------
+LR test vs. Poisson model: chibar2(01) = 7566.93      Prob >= chibar2 = 0.0000
+
+.           estat ic, n(77),          // get AIC and BIC equivalent to SAS
+
+Akaike's information criterion and Bayesian information criterion
+
+-----------------------------------------------------------------------------
+       Model |          N   ll(null)  ll(model)      df        AIC        BIC
+-------------+---------------------------------------------------------------
+           . |         77          .  -2840.997       2   5685.993   5690.681
+-----------------------------------------------------------------------------
+
+.           nlcom exp(_b[_cons])      // fixed intercept in counts
+
+       _nl_1:  exp(_b[_cons])
+
+------------------------------------------------------------------------------
+      deaths |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+       _nl_1 |   20.30173   2.352357     8.63   0.000     15.69119    24.91226
+------------------------------------------------------------------------------
+
+.           estimates store Poisson2  // Save for LRT
+
+.              
+. display as result "STATA Model 2b: Empty Means, Random Intercept Model for Deaths (outcome)"
+STATA Model 2b: Empty Means, Random Intercept Model for Deaths (outcome)
+
+. display as result "Log Link, Negative Binomial Conditional Distribution"
+Log Link, Negative Binomial Conditional Distribution
+
+. menbreg deaths , || region: , covariance(unstructured) intpoints(15),
+
+Fitting fixed-effects model:
+
+Iteration 0:   log likelihood = -1551.7396  
+Iteration 1:   log likelihood = -1526.9527  
+Iteration 2:   log likelihood = -1526.0306  
+Iteration 3:   log likelihood = -1526.0297  
+Iteration 4:   log likelihood = -1526.0297  
+
+Refining starting values:
+
+Grid node 0:   log likelihood = -1480.4915
+
+Fitting full model:
+
+Iteration 0:   log likelihood = -1480.4915  
+Iteration 1:   log likelihood = -1444.7132  
+Iteration 2:   log likelihood = -1435.1714  
+Iteration 3:   log likelihood = -1433.7503  
+Iteration 4:   log likelihood = -1433.7011  
+Iteration 5:   log likelihood =  -1433.701  
+
+Mixed-effects nbinomial regression              Number of obs     =        351
+Overdispersion:            mean
+Group variable:          region                 Number of groups  =         77
+
+                                                Obs per group:
+                                                              min =          1
+                                                              avg =        4.6
+                                                              max =         13
+
+Integration method: mvaghermite                 Integration pts.  =         15
+
+                                                Wald chi2(0)      =          .
+Log likelihood =  -1433.701                     Prob > chi2       =          .
+------------------------------------------------------------------------------
+      deaths |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+       _cons |   3.049276   .1138639    26.78   0.000     2.826107    3.272445
+-------------+----------------------------------------------------------------
+    /lnalpha |  -.8457809    .094726                     -1.031441   -.6601213
+-------------+----------------------------------------------------------------
+region       |
+   var(_cons)|   .8465801   .1660286                      .5764122    1.243377
+------------------------------------------------------------------------------
+LR test vs. nbinomial model: chibar2(01) = 184.66     Prob >= chibar2 = 0.0000
+
+.         estat ic, n(77),         // get AIC and BIC equivalent to SAS
+
+Akaike's information criterion and Bayesian information criterion
+
+-----------------------------------------------------------------------------
+       Model |          N   ll(null)  ll(model)      df        AIC        BIC
+-------------+---------------------------------------------------------------
+           . |         77          .  -1433.701       3   2873.402   2880.433
+-----------------------------------------------------------------------------
+
+.         nlcom exp(_b[_cons])     // fixed intercept in counts
+
+       _nl_1:  exp(_b[_cons])
+
+------------------------------------------------------------------------------
+      deaths |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+       _nl_1 |   21.10007   2.402536     8.78   0.000     16.39119    25.80895
+------------------------------------------------------------------------------
+
+.         estimates store NegBin2  // save LL for LRT
+
+.         lrtest NegBin2 Poisson2  // LRT against fixed effect model -- not working yet
+
+Likelihood-ratio test                                 LR chi2(1)  =   2814.59
+(Assumption: Poisson2 nested in NegBin2)              Prob > chi2 =    0.0000
+
+Note: The reported degrees of freedom assumes the null hypothesis is not on the boundary of the parameter space.  If this is not true, then the
+      reported test is conservative.
+
+. 
+. display as result "STATA Model 3a: Add Fixed Slope of Between-Region Mean UV Predictor"
+STATA Model 3a: Add Fixed Slope of Between-Region Mean UV Predictor
+
+. menbreg deaths c.RMuv0, || region: , covariance(unstructured) intpoints(15),
+
+Fitting fixed-effects model:
+
+Iteration 0:   log likelihood = -1518.9583  
+Iteration 1:   log likelihood = -1497.6539  
+Iteration 2:   log likelihood = -1496.5663  
+Iteration 3:   log likelihood =  -1496.565  
+Iteration 4:   log likelihood =  -1496.565  
+
+Refining starting values:
+
+Grid node 0:   log likelihood = -1463.2058
+
+Fitting full model:
+
+Iteration 0:   log likelihood = -1463.2058  
+Iteration 1:   log likelihood = -1448.5485  
+Iteration 2:   log likelihood = -1432.6889  
+Iteration 3:   log likelihood = -1427.7241  
+Iteration 4:   log likelihood =  -1427.173  
+Iteration 5:   log likelihood = -1427.1617  
+Iteration 6:   log likelihood = -1427.1617  
+
+Mixed-effects nbinomial regression              Number of obs     =        351
+Overdispersion:            mean
+Group variable:          region                 Number of groups  =         77
+
+                                                Obs per group:
+                                                              min =          1
+                                                              avg =        4.6
+                                                              max =         13
+
+Integration method: mvaghermite                 Integration pts.  =         15
+
+                                                Wald chi2(1)      =      14.23
+Log likelihood = -1427.1617                     Prob > chi2       =     0.0002
+------------------------------------------------------------------------------
+      deaths |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+       RMuv0 |  -.0825126   .0218699    -3.77   0.000    -.1253768   -.0396484
+       _cons |    3.03809   .1044083    29.10   0.000     2.833454    3.242727
+-------------+----------------------------------------------------------------
+    /lnalpha |  -.8494549   .0946595                     -1.034984   -.6639258
+-------------+----------------------------------------------------------------
+region       |
+   var(_cons)|   .6895104   .1398694                      .4633103    1.026147
+------------------------------------------------------------------------------
+LR test vs. nbinomial model: chibar2(01) = 138.81     Prob >= chibar2 = 0.0000
+
+.         estat ic, n(77), 
+
+Akaike's information criterion and Bayesian information criterion
+
+-----------------------------------------------------------------------------
+       Model |          N   ll(null)  ll(model)      df        AIC        BIC
+-------------+---------------------------------------------------------------
+           . |         77          .  -1427.162       4   2862.323   2871.699
+-----------------------------------------------------------------------------
+
+.         margins , at(c.RMuv0=(-1(1)1)) predict(xb) // predicted log counts
+
+Adjusted predictions                            Number of obs     =        351
+Model VCE    : OIM
+
+Expression   : Linear prediction, fixed portion only, predict(xb)
+
+1._at        : RMuv0           =          -1
+
+2._at        : RMuv0           =           0
+
+3._at        : RMuv0           =           1
+
+------------------------------------------------------------------------------
+             |            Delta-method
+             |     Margin   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         _at |
+          1  |   3.120603   .1060933    29.41   0.000     2.912664    3.328542
+          2  |    3.03809   .1044083    29.10   0.000     2.833454    3.242727
+          3  |   2.955578    .107252    27.56   0.000     2.745368    3.165788
+------------------------------------------------------------------------------
+
+.         margins , at(c.RMuv0=(-1(1)1))             // marginal predicted counts
+
+Adjusted predictions                            Number of obs     =        351
+Model VCE    : OIM
+
+Expression   : Marginal predicted mean, predict()
+
+1._at        : RMuv0           =          -1
+
+2._at        : RMuv0           =           0
+
+3._at        : RMuv0           =           1
+
+------------------------------------------------------------------------------
+             |            Delta-method
+             |     Margin   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         _at |
+          1  |   31.98791   4.051713     7.89   0.000      24.0467    39.92913
+          2  |   29.45446   3.682532     8.00   0.000     22.23684    36.67209
+          3  |   27.12167   3.449374     7.86   0.000     20.36102    33.88231
+------------------------------------------------------------------------------
+
+. 
+. display as result "STATA Model 3b: Add Fixed Slope of Within-Region UV Predictor"
+STATA Model 3b: Add Fixed Slope of Within-Region UV Predictor
+
+. menbreg deaths c.RMuv0 c.WRuv, || region: , covariance(unstructured) intpoints(15),
+
+Fitting fixed-effects model:
+
+Iteration 0:   log likelihood = -1518.2564  
+Iteration 1:   log likelihood = -1496.8859  
+Iteration 2:   log likelihood = -1495.7839  
+Iteration 3:   log likelihood = -1495.7827  
+Iteration 4:   log likelihood = -1495.7827  
+
+Refining starting values:
+
+Grid node 0:   log likelihood = -1462.1689
+
+Fitting full model:
+
+Iteration 0:   log likelihood = -1462.1689  
+Iteration 1:   log likelihood = -1445.8897  
+Iteration 2:   log likelihood =  -1430.636  
+Iteration 3:   log likelihood = -1426.2064  
+Iteration 4:   log likelihood = -1425.7697  
+Iteration 5:   log likelihood = -1425.7632  
+Iteration 6:   log likelihood = -1425.7632  
+
+Mixed-effects nbinomial regression              Number of obs     =        351
+Overdispersion:            mean
+Group variable:          region                 Number of groups  =         77
+
+                                                Obs per group:
+                                                              min =          1
+                                                              avg =        4.6
+                                                              max =         13
+
+Integration method: mvaghermite                 Integration pts.  =         15
+
+                                                Wald chi2(2)      =      17.07
+Log likelihood = -1425.7632                     Prob > chi2       =     0.0002
+------------------------------------------------------------------------------
+      deaths |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+       RMuv0 |  -.0826483   .0218737    -3.78   0.000    -.1255199   -.0397767
+        WRuv |   .1386589   .0829648     1.67   0.095    -.0239491    .3012668
+       _cons |   3.036761   .1044211    29.08   0.000     2.832099    3.241422
+-------------+----------------------------------------------------------------
+    /lnalpha |  -.8589914   .0947187                     -1.044637   -.6733462
+-------------+----------------------------------------------------------------
+region       |
+   var(_cons)|   .6908755   .1398594                      .4646055    1.027342
+------------------------------------------------------------------------------
+LR test vs. nbinomial model: chibar2(01) = 140.04     Prob >= chibar2 = 0.0000
+
+.         estat ic, n(77), 
+
+Akaike's information criterion and Bayesian information criterion
+
+-----------------------------------------------------------------------------
+       Model |          N   ll(null)  ll(model)      df        AIC        BIC
+-------------+---------------------------------------------------------------
+           . |         77          .  -1425.763       5   2861.526   2873.245
+-----------------------------------------------------------------------------
+
+.         lincom c.WRuv*-1 + c.RMuv0*1              // contextual UV effect
+
+ ( 1)  [deaths]RMuv0 - [deaths]WRuv = 0
+
+------------------------------------------------------------------------------
+      deaths |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         (1) |  -.2213071   .0857912    -2.58   0.010    -.3894548   -.0531594
+------------------------------------------------------------------------------
+
+.         margins , at(c.WRuv=(-1(1)1)) predict(xb) // predicted log counts
+
+Predictive margins                              Number of obs     =        351
+Model VCE    : OIM
+
+Expression   : Linear prediction, fixed portion only, predict(xb)
+
+1._at        : WRuv            =          -1
+
+2._at        : WRuv            =           0
+
+3._at        : WRuv            =           1
+
+------------------------------------------------------------------------------
+             |            Delta-method
+             |     Margin   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         _at |
+          1  |   2.896439   .1332784    21.73   0.000     2.635218     3.15766
+          2  |   3.035098    .104434    29.06   0.000     2.830411    3.239785
+          3  |   3.173756   .1334769    23.78   0.000     2.912147    3.435366
+------------------------------------------------------------------------------
+
+.         margins , at(c.WRuv=(-1(1)1))             // marginal predicted counts                
+
+Predictive margins                              Number of obs     =        351
+Model VCE    : OIM
+
+Expression   : Marginal predicted mean, predict()
+
+1._at        : WRuv            =          -1
+
+2._at        : WRuv            =           0
+
+3._at        : WRuv            =           1
+
+------------------------------------------------------------------------------
+             |            Delta-method
+             |     Margin   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         _at |
+          1  |   27.59538   4.254815     6.49   0.000      19.2561    35.93467
+          2  |    31.6997   4.126043     7.68   0.000     23.61281     39.7866
+          3  |   36.41447   5.626766     6.47   0.000     25.38621    47.44273
+------------------------------------------------------------------------------
+
+.         estimates store Fixed                     // save LL for LRT     
+
+.           
+. display as result "STATA Model 3c: Add Random Slope of Within-Region UV Predictor"
+STATA Model 3c: Add Random Slope of Within-Region UV Predictor
+
+. menbreg deaths c.RMuv0 c.WRuv, || region: c.WRuv, covariance(unstructured) intpoints(15),
+
+Fitting fixed-effects model:
+
+Iteration 0:   log likelihood = -1518.2564  
+Iteration 1:   log likelihood = -1496.8859  
+Iteration 2:   log likelihood = -1495.7839  
+Iteration 3:   log likelihood = -1495.7827  
+Iteration 4:   log likelihood = -1495.7827  
+
+Refining starting values:
+
+Grid node 0:   log likelihood = -1472.2623
+
+Fitting full model:
+
+Iteration 0:   log likelihood = -1472.2623  (not concave)
+Iteration 1:   log likelihood = -1468.0147  (not concave)
+Iteration 2:   log likelihood = -1464.1604  (not concave)
+Iteration 3:   log likelihood = -1458.2254  
+Iteration 4:   log likelihood = -1447.5723  
+Iteration 5:   log likelihood = -1422.5896  
+Iteration 6:   log likelihood =  -1421.976  
+Iteration 7:   log likelihood = -1421.9693  
+Iteration 8:   log likelihood = -1421.9693  
+
+Mixed-effects nbinomial regression              Number of obs     =        351
+Overdispersion:            mean
+Group variable:          region                 Number of groups  =         77
+
+                                                Obs per group:
+                                                              min =          1
+                                                              avg =        4.6
+                                                              max =         13
+
+Integration method: mvaghermite                 Integration pts.  =         15
+
+                                                Wald chi2(2)      =      15.72
+Log likelihood = -1421.9693                     Prob > chi2       =     0.0004
+---------------------------------------------------------------------------------
+         deaths |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+----------------+----------------------------------------------------------------
+          RMuv0 |  -.0842531   .0216804    -3.89   0.000    -.1267458   -.0417603
+           WRuv |   .1063168   .1036328     1.03   0.305    -.0967997    .3094334
+          _cons |   3.023978   .1046806    28.89   0.000     2.818808    3.229148
+----------------+----------------------------------------------------------------
+       /lnalpha |  -.9374757   .0990369                     -1.131584    -.743367
+----------------+----------------------------------------------------------------
+region          |
+       var(WRuv)|   .1297411   .0749658                      .0418065    .4026343
+      var(_cons)|   .7020382   .1401541                      .4747094     1.03823
+----------------+----------------------------------------------------------------
+region          |
+ cov(WRuv,_cons)|  -.1150445   .1071847    -1.07   0.283    -.3251227    .0950338
+---------------------------------------------------------------------------------
+LR test vs. nbinomial model: chi2(3) = 147.63             Prob > chi2 = 0.0000
+
+Note: LR test is conservative and provided only for reference.
+
+.         estat ic, n(77), 
+
+Akaike's information criterion and Bayesian information criterion
+
+-----------------------------------------------------------------------------
+       Model |          N   ll(null)  ll(model)      df        AIC        BIC
+-------------+---------------------------------------------------------------
+           . |         77          .  -1421.969       7   2857.939   2874.345
+-----------------------------------------------------------------------------
+
+.         lincom c.WRuv*-1 + c.RMuv0*1 // contextual UV effect
+
+ ( 1)  [deaths]RMuv0 - [deaths]WRuv = 0
+
+------------------------------------------------------------------------------
+      deaths |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         (1) |  -.1905699   .1071861    -1.78   0.075    -.4006509    .0195111
+------------------------------------------------------------------------------
+
+.         estimates store Random       // save LL for LRT
+
+.         lrtest Random Fixed          // LRT against fixed effect model          
+
+Likelihood-ratio test                                 LR chi2(2)  =      7.59
+(Assumption: Fixed nested in Random)                  Prob > chi2 =    0.0225
+
+Note: The reported degrees of freedom assumes the null hypothesis is not on the boundary of the parameter space.  If this is not true, then the
+      reported test is conservative.
+
+.           
+. display as result "STATA Model 4a: Nation as Control Predictor"
+STATA Model 4a: Nation as Control Predictor
+
+. display as result "Main Effect of Nation Only"
+Main Effect of Nation Only
+
+. menbreg deaths c.RMuv0 c.WRuv i.nation, ///
+>            || region: c.WRuv, covariance(unstructured) intpoints(15),
+
+Fitting fixed-effects model:
+
+Iteration 0:   log likelihood = -1432.1759  
+Iteration 1:   log likelihood = -1396.0698  
+Iteration 2:   log likelihood = -1393.6141  
+Iteration 3:   log likelihood = -1393.6007  
+Iteration 4:   log likelihood = -1393.6007  
+
+Refining starting values:
+
+Grid node 0:   log likelihood = -1420.1025
+
+Fitting full model:
+
+Iteration 0:   log likelihood = -1420.1025  (not concave)
+Iteration 1:   log likelihood = -1402.4169  (not concave)
+Iteration 2:   log likelihood = -1398.9589  (not concave)
+Iteration 3:   log likelihood = -1393.1457  (not concave)
+Iteration 4:   log likelihood = -1388.7637  (not concave)
+Iteration 5:   log likelihood = -1379.1905  
+Iteration 6:   log likelihood = -1373.4544  
+Iteration 7:   log likelihood = -1372.4679  
+Iteration 8:   log likelihood = -1372.3233  
+Iteration 9:   log likelihood = -1372.3195  
+Iteration 10:  log likelihood = -1372.3195  
+
+Mixed-effects nbinomial regression              Number of obs     =        351
+Overdispersion:            mean
+Group variable:          region                 Number of groups  =         77
+
+                                                Obs per group:
+                                                              min =          1
+                                                              avg =        4.6
+                                                              max =         13
+
+Integration method: mvaghermite                 Integration pts.  =         15
+
+                                                Wald chi2(9)      =     221.50
+Log likelihood = -1372.3195                     Prob > chi2       =     0.0000
+---------------------------------------------------------------------------------
+         deaths |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+----------------+----------------------------------------------------------------
+          RMuv0 |  -.0607147   .0243293    -2.50   0.013    -.1083991   -.0130302
+           WRuv |   .1310977   .1009111     1.30   0.194    -.0666844    .3288798
+                |
+         nation |
+    W. Germany  |   .9237703   .3349451     2.76   0.006     .2672899    1.580251
+       Denmark  |  -.0230696   .4075577    -0.06   0.955    -.8218681    .7757289
+        France  |  -.7533168   .3276672    -2.30   0.022    -1.395533   -.1111008
+            UK  |  -.5039341   .3230968    -1.56   0.119    -1.137192     .129324
+         Italy  |  -.5597976   .3754805    -1.49   0.136    -1.295726    .1761306
+       Ireland  |   -2.91151   .3916839    -7.43   0.000    -3.679197   -2.143824
+   Netherlands  |   .0168993   .3999605     0.04   0.966    -.7670089    .8008074
+                |
+          _cons |   3.504859   .3000481    11.68   0.000     2.916775    4.092942
+----------------+----------------------------------------------------------------
+       /lnalpha |    -.94879   .0965266                     -1.137979   -.7596013
+----------------+----------------------------------------------------------------
+region          |
+       var(WRuv)|   .1190285   .0659041                      .0402119    .3523279
+      var(_cons)|   .1252253   .0368951                      .0702915    .2230905
+----------------+----------------------------------------------------------------
+region          |
+ cov(WRuv,_cons)|  -.0859603   .0429331    -2.00   0.045    -.1701075    -.001813
+---------------------------------------------------------------------------------
+LR test vs. nbinomial model: chi2(3) = 42.56              Prob > chi2 = 0.0000
+
+Note: LR test is conservative and provided only for reference.
+
+.         estat ic, n(77), 
+
+Akaike's information criterion and Bayesian information criterion
+
+-----------------------------------------------------------------------------
+       Model |          N   ll(null)  ll(model)      df        AIC        BIC
+-------------+---------------------------------------------------------------
+           . |         77          .  -1372.319      14   2772.639   2805.452
+-----------------------------------------------------------------------------
+
+.         contrast i.nation  // Omnibus test of df=7 nation on intercept 
+
+Contrasts of marginal linear predictions
+
+Margins      : asbalanced
+
+------------------------------------------------
+             |         df        chi2     P>chi2
+-------------+----------------------------------
+deaths       |
+      nation |          7      179.21     0.0000
+------------------------------------------------
+
+.                      
+. display as result "STATA Model 4b: Nation as Control Predictor"
+STATA Model 4b: Nation as Control Predictor
+
+. display as result "Add Nation Interactions with Between-Region UV and Within-Region UV"
+Add Nation Interactions with Between-Region UV and Within-Region UV
+
+. menbreg deaths c.RMuv0 c.WRuv i.nation i.nation i.nation#c.RMuv0 i.nation#c.WRuv, ///
+>            || region: c.WRuv, covariance(unstructured) intpoints(15),
+
+Fitting fixed-effects model:
+
+Iteration 0:   log likelihood = -1417.3574  
+Iteration 1:   log likelihood = -1371.8379  
+Iteration 2:   log likelihood = -1367.2491  
+Iteration 3:   log likelihood =  -1367.163  
+Iteration 4:   log likelihood =  -1367.163  
+
+Refining starting values:
+
+Grid node 0:   log likelihood = -1411.3128
+
+Fitting full model:
+
+Iteration 0:   log likelihood = -1411.3128  (not concave)
+Iteration 1:   log likelihood = -1393.1229  (not concave)
+Iteration 2:   log likelihood =  -1390.814  (not concave)
+Iteration 3:   log likelihood = -1379.8937  (not concave)
+Iteration 4:   log likelihood =  -1377.643  (not concave)
+Iteration 5:   log likelihood = -1374.3985  (not concave)
+Iteration 6:   log likelihood = -1370.7587  (not concave)
+Iteration 7:   log likelihood = -1368.3111  (not concave)
+Iteration 8:   log likelihood = -1366.6197  (not concave)
+Iteration 9:   log likelihood = -1365.9456  (not concave)
+Iteration 10:  log likelihood = -1364.5153  (not concave)
+Iteration 11:  log likelihood = -1363.8387  (not concave)
+Iteration 12:  log likelihood = -1360.2458  
+Iteration 13:  log likelihood = -1358.9981  
+Iteration 14:  log likelihood =  -1357.908  
+Iteration 15:  log likelihood = -1357.8555  
+Iteration 16:  log likelihood = -1357.8551  
+Iteration 17:  log likelihood = -1357.8551  
+
+Mixed-effects nbinomial regression              Number of obs     =        351
+Overdispersion:            mean
+Group variable:          region                 Number of groups  =         77
+
+                                                Obs per group:
+                                                              min =          1
+                                                              avg =        4.6
+                                                              max =         13
+
+Integration method: mvaghermite                 Integration pts.  =         15
+
+                                                Wald chi2(23)     =     309.54
+Log likelihood = -1357.8551                     Prob > chi2       =     0.0000
+---------------------------------------------------------------------------------
+         deaths |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+----------------+----------------------------------------------------------------
+          RMuv0 |  -3.357636   1.433871    -2.34   0.019    -6.167972   -.5472997
+           WRuv |  -.7910456   1.049782    -0.75   0.451     -2.84858    1.266489
+                |
+         nation |
+    W. Germany  |   10.38349   4.178873     2.48   0.013     2.193048    18.57393
+       Denmark  |   5.765746   6.635454     0.87   0.385    -7.239504      18.771
+        France  |   8.890319   4.165265     2.13   0.033     .7265493    17.05409
+            UK  |   10.39973   4.173801     2.49   0.013     2.219233    18.58023
+         Italy  |   9.222484   4.168899     2.21   0.027     1.051591    17.39338
+       Ireland  |   10.58426   4.761587     2.22   0.026     1.251718     19.9168
+   Netherlands  |   14.27584   4.800154     2.97   0.003     4.867716    23.68397
+                |
+ nation#c.RMuv0 |
+    W. Germany  |   3.261246   1.437454     2.27   0.023     .4438874    6.078604
+       Denmark  |   2.610564   1.702926     1.53   0.125    -.7271093    5.948236
+        France  |   3.282849   1.435638     2.29   0.022     .4690512    6.096647
+            UK  |   3.577673   1.433222     2.50   0.013     .7686095    6.386736
+         Italy  |   3.270496   1.434331     2.28   0.023     .4592582    6.081734
+       Ireland  |   4.074369   1.505447     2.71   0.007     1.123747    7.024991
+   Netherlands  |   4.423425   1.542178     2.87   0.004     1.400811     7.44604
+                |
+  nation#c.WRuv |
+    W. Germany  |   1.262831   1.104817     1.14   0.253    -.9025707    3.428233
+       Denmark  |     -.3424   1.274003    -0.27   0.788      -2.8394      2.1546
+        France  |   .8777285   1.061324     0.83   0.408    -1.202429    2.957886
+            UK  |   1.073951   1.078417     1.00   0.319    -1.039707     3.18761
+         Italy  |   .8583711   1.071185     0.80   0.423    -1.241113    2.957855
+       Ireland  |   1.346869   1.222037     1.10   0.270    -1.048278    3.742017
+   Netherlands  |  -2.727234   2.010927    -1.36   0.175    -6.668577     1.21411
+                |
+          _cons |  -6.100643   4.165679    -1.46   0.143    -14.26522    2.063938
+----------------+----------------------------------------------------------------
+       /lnalpha |  -.9805704   .0971002                     -1.170883   -.7902574
+----------------+----------------------------------------------------------------
+region          |
+       var(WRuv)|    .121032   .0695336                      .0392537     .373182
+      var(_cons)|   .0655136   .0273558                      .0289005    .1485108
+----------------+----------------------------------------------------------------
+region          |
+ cov(WRuv,_cons)|  -.0474744   .0438638    -1.08   0.279    -.1334458     .038497
+---------------------------------------------------------------------------------
+LR test vs. nbinomial model: chi2(3) = 18.62              Prob > chi2 = 0.0003
+
+Note: LR test is conservative and provided only for reference.
+
+.         estat ic, n(77), 
+
+Akaike's information criterion and Bayesian information criterion
+
+-----------------------------------------------------------------------------
+       Model |          N   ll(null)  ll(model)      df        AIC        BIC
+-------------+---------------------------------------------------------------
+           . |         77          .  -1357.855      28    2771.71   2837.337
+-----------------------------------------------------------------------------
+
+.         contrast i.nation          // Omnibus test of df=7 nation on intercept 
+
+Contrasts of marginal linear predictions
+
+Margins      : asbalanced
+
+------------------------------------------------
+             |         df        chi2     P>chi2
+-------------+----------------------------------
+deaths       |
+      nation |          7       35.69     0.0000
+------------------------------------------------
+
+.         contrast i.nation#c.RMuv0  // Omnibus test of df=7 nation on RMuv0 slope
+
+Contrasts of marginal linear predictions
+
+Margins      : asbalanced
+
+--------------------------------------------------
+               |         df        chi2     P>chi2
+---------------+----------------------------------
+deaths         |
+nation#c.RMuv0 |          7       22.72     0.0019
+--------------------------------------------------
+
+.         lincom  c.RMuv0*1 + i1.nation#c.RMuv0*1 // RMuv0 fixed slope per nation
+
+ ( 1)  [deaths]RMuv0 + [deaths]1b.nation#co.RMuv0 = 0
+
+------------------------------------------------------------------------------
+      deaths |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         (1) |  -3.357636   1.433871    -2.34   0.019    -6.167972   -.5472997
+------------------------------------------------------------------------------
+
+.         lincom  c.RMuv0*1 + i2.nation#c.RMuv0*1
+
+ ( 1)  [deaths]RMuv0 + [deaths]2.nation#c.RMuv0 = 0
+
+------------------------------------------------------------------------------
+      deaths |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         (1) |  -.0963901   .1130251    -0.85   0.394    -.3179153     .125135
+------------------------------------------------------------------------------
+
+.         lincom  c.RMuv0*1 + i3.nation#c.RMuv0*1
+
+ ( 1)  [deaths]RMuv0 + [deaths]3.nation#c.RMuv0 = 0
+
+------------------------------------------------------------------------------
+      deaths |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         (1) |  -.7470725   .9262004    -0.81   0.420    -2.562392    1.068247
+------------------------------------------------------------------------------
+
+.         lincom  c.RMuv0*1 + i4.nation#c.RMuv0*1
+
+ ( 1)  [deaths]RMuv0 + [deaths]4.nation#c.RMuv0 = 0
+
+------------------------------------------------------------------------------
+      deaths |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         (1) |  -.0747871   .0378904    -1.97   0.048    -.1490508   -.0005233
+------------------------------------------------------------------------------
+
+.         lincom  c.RMuv0*1 + i5.nation#c.RMuv0*1
+
+ ( 1)  [deaths]RMuv0 + [deaths]5.nation#c.RMuv0 = 0
+
+------------------------------------------------------------------------------
+      deaths |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         (1) |   .2200369   .0967336     2.27   0.023     .0304426    .4096312
+------------------------------------------------------------------------------
+
+.         lincom  c.RMuv0*1 + i6.nation#c.RMuv0*1
+
+ ( 1)  [deaths]RMuv0 + [deaths]6.nation#c.RMuv0 = 0
+
+------------------------------------------------------------------------------
+      deaths |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         (1) |  -.0871398   .0278237    -3.13   0.002    -.1416732   -.0326063
+------------------------------------------------------------------------------
+
+.         lincom  c.RMuv0*1 + i7.nation#c.RMuv0*1
+
+ ( 1)  [deaths]RMuv0 + [deaths]7.nation#c.RMuv0 = 0
+
+------------------------------------------------------------------------------
+      deaths |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         (1) |   .7167329   .4537351     1.58   0.114    -.1725714    1.606037
+------------------------------------------------------------------------------
+
+.         lincom  c.RMuv0*1 + i9.nation#c.RMuv0*1
+
+ ( 1)  [deaths]RMuv0 + [deaths]9.nation#c.RMuv0 = 0
+
+------------------------------------------------------------------------------
+      deaths |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         (1) |   1.065789   .5699248     1.87   0.061    -.0512429    2.182821
+------------------------------------------------------------------------------
+
+.         contrast i.nation#c.WRuv  // Omnibus test of df=7 nation on WRuv slope
+
+Contrasts of marginal linear predictions
+
+Margins      : asbalanced
+
+-------------------------------------------------
+              |         df        chi2     P>chi2
+--------------+----------------------------------
+deaths        |
+nation#c.WRuv |          7       10.37     0.1688
+-------------------------------------------------
+
+.         lincom  c.WRuv*1 + i1.nation#c.WRuv*1 // WRuv fixed slope per nation
+
+ ( 1)  [deaths]WRuv + [deaths]1b.nation#co.WRuv = 0
+
+------------------------------------------------------------------------------
+      deaths |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         (1) |  -.7910456   1.049782    -0.75   0.451     -2.84858    1.266489
+------------------------------------------------------------------------------
+
+.         lincom  c.WRuv*1 + i2.nation#c.WRuv*1
+
+ ( 1)  [deaths]WRuv + [deaths]2.nation#c.WRuv = 0
+
+------------------------------------------------------------------------------
+      deaths |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         (1) |   .4717854   .3451701     1.37   0.172    -.2047356    1.148306
+------------------------------------------------------------------------------
+
+.         lincom  c.WRuv*1 + i3.nation#c.WRuv*1
+
+ ( 1)  [deaths]WRuv + [deaths]3.nation#c.WRuv = 0
+
+------------------------------------------------------------------------------
+      deaths |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         (1) |  -1.133446     .72604    -1.56   0.118    -2.556458    .2895667
+------------------------------------------------------------------------------
+
+.         lincom  c.WRuv*1 + i4.nation#c.WRuv*1
+
+ ( 1)  [deaths]WRuv + [deaths]4.nation#c.WRuv = 0
+
+------------------------------------------------------------------------------
+      deaths |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         (1) |   .0866829    .159563     0.54   0.587    -.2260548    .3994206
+------------------------------------------------------------------------------
+
+.         lincom  c.WRuv*1 + i5.nation#c.WRuv*1
+
+ ( 1)  [deaths]WRuv + [deaths]5.nation#c.WRuv = 0
+
+------------------------------------------------------------------------------
+      deaths |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         (1) |   .2829056   .2499993     1.13   0.258    -.2070839    .7728951
+------------------------------------------------------------------------------
+
+.         lincom  c.WRuv*1 + i6.nation#c.WRuv*1
+
+ ( 1)  [deaths]WRuv + [deaths]6.nation#c.WRuv = 0
+
+------------------------------------------------------------------------------
+      deaths |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         (1) |   .0673255   .1924493     0.35   0.726    -.3098683    .4445193
+------------------------------------------------------------------------------
+
+.         lincom  c.WRuv*1 + i7.nation#c.WRuv*1
+
+ ( 1)  [deaths]WRuv + [deaths]7.nation#c.WRuv = 0
+
+------------------------------------------------------------------------------
+      deaths |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         (1) |   .5558238   .6238332     0.89   0.373    -.6668669    1.778514
+------------------------------------------------------------------------------
+
+.         lincom  c.WRuv*1 + i9.nation#c.WRuv*1
+
+ ( 1)  [deaths]WRuv + [deaths]9.nation#c.WRuv = 0
+
+------------------------------------------------------------------------------
+      deaths |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         (1) |  -3.518279   1.713269    -2.05   0.040    -6.876224   -.1603343
+------------------------------------------------------------------------------
+
+. 
+.           
+. // Close log
+. log close STATA_Example5b
+      name:  STATA_Example5b
+       log:  C:\Dropbox\19_PSQF7375_Clustered\PSQF7375_Clustered_Example5b\PSQF7375_Clustered_Example5b_STATA_Output.log
+  log type:  text
+ closed on:   5 Nov 2019, 09:17:26
+------------------------------------------------------------------------------------------------------------------------------------------------------

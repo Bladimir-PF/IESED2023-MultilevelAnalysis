@@ -1,0 +1,439 @@
+------------------------------------------------------------------------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  C:\Dropbox\19_PSQF7375_Clustered\PSQF7375_Clustered_Example4\PSQF7375_Clustered_Example4_STATA_Output.log
+  log type:  text
+ opened on:  21 Oct 2019, 09:39:16
+
+. 
+. // Get means per primary school and secondary school of kid predictor
+. egen pmSES    = mean(pupses), by (pschool)
+
+. egen pmAchiev = mean(achiev), by (pschool)
+
+. label variable pmSES    "Primary Mean Student SES"
+
+. label variable pmAchiev "Primary Mean Student Achievement"
+
+. egen smSES    = mean(pupses), by (sschool)
+
+. egen smAchiev = mean(achiev), by (sschool)
+
+. label variable smSES    "Secondary Mean Student SES"
+
+. label variable smAchiev "Secondary Mean Student Achievement"
+
+.  // Center and label predictors
+. gen  pupSES4 = pupses - 4 
+
+. gen  pmSES4  = pmSES - 4  
+
+. gen  smSES4  = smSES - 4  
+
+. label variable pupSES4 "Student SES (0=4)"
+
+. label variable pmSES4  "Primary Mean Student SES (0=4)"
+
+. label variable smSES4  "Secondary Mean Student SES (0=4)"
+
+. 
+. 
+. ////////////////////////////////////////////////////////////////////////////////
+> ////////                     BEGIN ANALYSES FOR EXAMPLE 4                ///////
+> ////////////////////////////////////////////////////////////////////////////////
+> 
+. display as result "STATA Primary School Descriptives"
+STATA Primary School Descriptives
+
+. preserve  // Save for later use, then compute school-level dataset
+
+. collapse  pdenom pmSES pmAchiev, by(pschool)
+
+. format    pdenom pmSES pmAchiev %4.2f
+
+. summarize pdenom pmSES pmAchiev, format
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+      pdenom |         50        0.60        0.49       0.00       1.00
+       pmSES |         50        4.10        0.28       3.47       4.73
+    pmAchiev |         50        6.36        0.45       5.28       7.55
+
+. restore   // Go back to student-level dataset
+
+. 
+. display as result "STATA Secondary School Descriptives"
+STATA Secondary School Descriptives
+
+. preserve  // Save for later use, then compute school-level dataset
+
+. collapse  sdenom smSES smAchiev, by(sschool)
+
+. format    sdenom smSES smAchiev %4.2f
+
+. summarize sdenom smSES smAchiev, format
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+      sdenom |         30        0.67        0.46       0.00       1.00
+       smSES |         30        4.10        0.25       3.47       4.52
+    smAchiev |         30        6.34        0.31       5.75       6.91
+
+. restore   // Go back to student-level dataset
+
+. 
+. display as result "STATA Student Descriptives"
+STATA Student Descriptives
+
+. format    pupSES achiev %4.2f
+
+. summarize pupSES achiev, format
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+     pupSES4 |      1,000        0.10        1.40      -3.00       2.00
+      achiev |      1,000        6.34        0.87       3.90       9.90
+
+. 
+. display as result "STATA Empty Means Model 1a: Secondary Random Intercept Only"
+STATA Empty Means Model 1a: Secondary Random Intercept Only
+
+. mixed achiev ,  ///
+>         || sschool: ,   variance reml covariance(un) ///
+>            dfmethod(satterthwaite) dftable(pvalue)  
+Note: single-variable random-effects specification in sschool equation; covariance structure set to identity
+
+Performing EM optimization: 
+
+Performing gradient-based optimization: 
+
+Iteration 0:   log restricted-likelihood = -1252.3338  
+Iteration 1:   log restricted-likelihood = -1252.3338  
+
+Computing standard errors:
+
+Computing degrees of freedom:
+
+Mixed-effects REML regression                   Number of obs     =      1,000
+Group variable: sschool                         Number of groups  =         30
+
+                                                Obs per group:
+                                                              min =         20
+                                                              avg =       33.3
+                                                              max =         48
+DF method: Satterthwaite                        DF:           min =      28.90
+                                                              avg =      28.90
+                                                              max =      28.90
+
+                                                F(0,     0.00)    =          .
+Log restricted-likelihood = -1252.3338          Prob > F          =          .
+
+-------------------------------------------------------------------
+      achiev |      Coef.   Std. Err.           DF       t    P>|t|
+-------------+-----------------------------------------------------
+       _cons |   6.338648   .0558332          28.9   113.53   0.000
+-------------------------------------------------------------------
+
+------------------------------------------------------------------------------
+  Random-effects Parameters  |   Estimate   Std. Err.     [95% Conf. Interval]
+-----------------------------+------------------------------------------------
+sschool: Identity            |
+                  var(_cons) |   .0720675   .0244918      .0370223    .1402865
+-----------------------------+------------------------------------------------
+               var(Residual) |   .6832839    .031023      .6251069    .7468753
+------------------------------------------------------------------------------
+LR test vs. linear model: chibar2(01) = 53.70         Prob >= chibar2 = 0.0000
+
+.        estimates store FitNested  // Save for LRT
+
+. 
+. display as result "STATA Empty Means Model 1b: Primary by Secondary Crossed Random Intercepts"
+STATA Empty Means Model 1b: Primary by Secondary Crossed Random Intercepts
+
+. mixed achiev ,  ///
+>         || _all: R.sschool ,     ///
+>         || _all: R.pschool ,   variance reml  ///
+>            dfmethod(satterthwaite) dftable(pvalue)  
+
+Performing EM optimization: 
+
+Performing gradient-based optimization: 
+
+Iteration 0:   log restricted-likelihood = -1160.5486  
+Iteration 1:   log restricted-likelihood = -1160.5486  
+
+Computing standard errors:
+
+Computing degrees of freedom:
+
+Mixed-effects REML regression                   Number of obs     =      1,000
+Group variable: _all                            Number of groups  =          1
+
+                                                Obs per group:
+                                                              min =      1,000
+                                                              avg =    1,000.0
+                                                              max =      1,000
+DF method: Satterthwaite                        DF:           min =      65.17
+                                                              avg =      65.17
+                                                              max =      65.17
+
+                                                F(0,     0.00)    =          .
+Log restricted-likelihood = -1160.5486          Prob > F          =          .
+
+-------------------------------------------------------------------
+      achiev |      Coef.   Std. Err.           DF       t    P>|t|
+-------------+-----------------------------------------------------
+       _cons |   6.348614   .0789046          65.2    80.46   0.000
+-------------------------------------------------------------------
+
+------------------------------------------------------------------------------
+  Random-effects Parameters  |   Estimate   Std. Err.     [95% Conf. Interval]
+-----------------------------+------------------------------------------------
+_all: Identity               |
+              var(R.sschool) |   .0666596   .0218956      .0350162    .1268983
+-----------------------------+------------------------------------------------
+_all: Identity               |
+              var(R.pschool) |   .1718995   .0401784      .1087231    .2717862
+-----------------------------+------------------------------------------------
+               var(Residual) |   .5131263   .0238965       .468364    .5621666
+------------------------------------------------------------------------------
+LR test vs. linear model: chi2(2) = 237.27                Prob > chi2 = 0.0000
+
+Note: LR test is conservative and provided only for reference.
+
+.       estimates store FitCrossed   // Save for LRT
+
+.       lrtest FitCrossed FitNested  // Request LRT
+
+Likelihood-ratio test                                 LR chi2(1)  =    183.57
+(Assumption: FitNested nested in FitCrossed)          Prob > chi2 =    0.0000
+
+Note: The reported degrees of freedom assumes the null hypothesis is not on the boundary of the parameter space.  If this is not true, then the
+      reported test is conservative.
+Note: LR tests based on REML are valid only when the fixed-effects specification is identical for both models.
+
+.              
+. display as result "STATA Model 2: Add School Denomination Variables"
+STATA Model 2: Add School Denomination Variables
+
+. mixed achiev pdenom sdenom,  ///
+>         || _all: R.sschool ,     ///
+>         || _all: R.pschool ,   variance reml  ///
+>            dfmethod(satterthwaite) dftable(pvalue) 
+
+Performing EM optimization: 
+
+Performing gradient-based optimization: 
+
+Iteration 0:   log restricted-likelihood = -1160.1711  
+Iteration 1:   log restricted-likelihood = -1160.1711  
+
+Computing standard errors:
+
+Computing degrees of freedom:
+
+Mixed-effects REML regression                   Number of obs     =      1,000
+Group variable: _all                            Number of groups  =          1
+
+                                                Obs per group:
+                                                              min =      1,000
+                                                              avg =    1,000.0
+                                                              max =      1,000
+DF method: Satterthwaite                        DF:           min =      45.77
+                                                              avg =      57.07
+                                                              max =      77.61
+
+                                                F(2,    46.85)    =       2.97
+Log restricted-likelihood = -1160.1711          Prob > F          =     0.0610
+
+-------------------------------------------------------------------
+      achiev |      Coef.   Std. Err.           DF       t    P>|t|
+-------------+-----------------------------------------------------
+      pdenom |   .1868169   .1275548          47.8     1.46   0.150
+      sdenom |   .1898921    .098527          45.8     1.93   0.060
+       _cons |   6.111453   .1258794          77.6    48.55   0.000
+-------------------------------------------------------------------
+
+------------------------------------------------------------------------------
+  Random-effects Parameters  |   Estimate   Std. Err.     [95% Conf. Interval]
+-----------------------------+------------------------------------------------
+_all: Identity               |
+              var(R.sschool) |   .0601744     .02044      .0309226    .1170976
+-----------------------------+------------------------------------------------
+_all: Identity               |
+              var(R.pschool) |   .1678513   .0397635       .105506    .2670373
+-----------------------------+------------------------------------------------
+               var(Residual) |   .5128566   .0238827      .4681199    .5618686
+------------------------------------------------------------------------------
+LR test vs. linear model: chi2(2) = 224.58                Prob > chi2 = 0.0000
+
+Note: LR test is conservative and provided only for reference.
+
+.           predict preddenom,         // save fixed-effect predicted outcomes
+(option xb assumed)
+
+.       corr achiev preddenom                        
+(obs=1,000)
+
+             |   achiev predde~m
+-------------+------------------
+      achiev |   1.0000
+   preddenom |   0.1439   1.0000
+
+
+.       display as result r(rho)^2 // total R2
+.02070133
+
+.              
+. display as result "STATA Model 3a: Add Student SES"
+STATA Model 3a: Add Student SES
+
+. mixed achiev c.pdenom c.sdenom c.pupSES4,  ///
+>         || _all: R.sschool ,     ///
+>         || _all: R.pschool ,   variance reml  ///
+>             dfmethod(satterthwaite) dftable(pvalue) 
+
+Performing EM optimization: 
+
+Performing gradient-based optimization: 
+
+Iteration 0:   log restricted-likelihood = -1142.5259  
+Iteration 1:   log restricted-likelihood = -1142.5259  
+
+Computing standard errors:
+
+Computing degrees of freedom:
+
+Mixed-effects REML regression                   Number of obs     =      1,000
+Group variable: _all                            Number of groups  =          1
+
+                                                Obs per group:
+                                                              min =      1,000
+                                                              avg =    1,000.0
+                                                              max =      1,000
+DF method: Satterthwaite                        DF:           min =      45.50
+                                                              avg =     278.29
+                                                              max =     942.40
+
+                                                F(3,    67.48)    =      16.23
+Log restricted-likelihood = -1142.5259          Prob > F          =     0.0000
+
+-------------------------------------------------------------------
+      achiev |      Coef.   Std. Err.           DF       t    P>|t|
+-------------+-----------------------------------------------------
+      pdenom |   .1889536   .1274301          47.8     1.48   0.145
+      sdenom |     .17447   .0962013          45.5     1.81   0.076
+     pupSES4 |   .1066091   .0163412         942.4     6.52   0.000
+       _cons |   6.109455    .124621          77.5    49.02   0.000
+-------------------------------------------------------------------
+
+------------------------------------------------------------------------------
+  Random-effects Parameters  |   Estimate   Std. Err.     [95% Conf. Interval]
+-----------------------------+------------------------------------------------
+_all: Identity               |
+              var(R.sschool) |   .0571026   .0195109      .0292292    .1115566
+-----------------------------+------------------------------------------------
+_all: Identity               |
+              var(R.pschool) |   .1686039    .039662      .1063244    .2673636
+-----------------------------+------------------------------------------------
+               var(Residual) |   .4914996   .0229005      .4486038     .538497
+------------------------------------------------------------------------------
+LR test vs. linear model: chi2(2) = 234.56                Prob > chi2 = 0.0000
+
+Note: LR test is conservative and provided only for reference.
+
+.              
+. display as result "STATA Model 3b: Add Student SES Contextual Effects"
+STATA Model 3b: Add Student SES Contextual Effects
+
+. mixed achiev c.pdenom c.sdenom c.pupSES4 c.pmSES4 c.smSES4,  ///
+>         || _all: R.sschool ,     ///
+>         || _all: R.pschool ,   variance reml  ///
+>             dfmethod(satterthwaite) dftable(pvalue)
+
+Performing EM optimization: 
+
+Performing gradient-based optimization: 
+
+Iteration 0:   log restricted-likelihood = -1143.4378  
+Iteration 1:   log restricted-likelihood = -1143.4378  
+
+Computing standard errors:
+
+Computing degrees of freedom:
+
+Mixed-effects REML regression                   Number of obs     =      1,000
+Group variable: _all                            Number of groups  =          1
+
+                                                Obs per group:
+                                                              min =      1,000
+                                                              avg =    1,000.0
+                                                              max =      1,000
+DF method: Satterthwaite                        DF:           min =      28.65
+                                                              avg =     194.11
+                                                              max =     921.90
+
+                                                F(5,    49.05)    =       9.85
+Log restricted-likelihood = -1143.4378          Prob > F          =     0.0000
+
+-------------------------------------------------------------------
+      achiev |      Coef.   Std. Err.           DF       t    P>|t|
+-------------+-----------------------------------------------------
+      pdenom |   .1884354   .1288387          46.9     1.46   0.150
+      sdenom |   .1732542   .0965466          44.2     1.79   0.080
+     pupSES4 |   .1057321   .0164453         921.9     6.43   0.000
+      pmSES4 |  -.0399054   .2277637          47.9    -0.18   0.862
+      smSES4 |   .1606763   .2032737          28.7     0.79   0.436
+       _cons |   6.098476   .1295859          75.1    47.06   0.000
+-------------------------------------------------------------------
+
+------------------------------------------------------------------------------
+  Random-effects Parameters  |   Estimate   Std. Err.     [95% Conf. Interval]
+-----------------------------+------------------------------------------------
+_all: Identity               |
+              var(R.sschool) |   .0577286   .0201048      .0291708     .114244
+-----------------------------+------------------------------------------------
+_all: Identity               |
+              var(R.pschool) |   .1726201    .040925      .1084644    .2747233
+-----------------------------+------------------------------------------------
+               var(Residual) |   .4915718   .0229075      .4486633     .538584
+------------------------------------------------------------------------------
+LR test vs. linear model: chi2(2) = 233.21                Prob > chi2 = 0.0000
+
+Note: LR test is conservative and provided only for reference.
+
+.           test (c.pupSES4=0)(c.pmSES4=0)(c.smSES4=0), small // Multiv Wald test for SES
+
+ ( 1)  [achiev]pupSES4 = 0
+ ( 2)  [achiev]pmSES4 = 0
+ ( 3)  [achiev]smSES4 = 0
+
+       F(  3, 51.76) =   14.40
+            Prob > F =    0.0000
+
+.           predict predSES,           // save fixed-effect predicted outcomes
+(option xb assumed)
+
+.       corr achiev predSES                        
+(obs=1,000)
+
+             |   achiev  predSES
+-------------+------------------
+      achiev |   1.0000
+     predSES |   0.2337   1.0000
+
+
+.       display as result r(rho)^2 // total R2
+.05460531
+
+.              
+. // STATA models with random slopes are not estimatble correctly 
+. // because covariance(un) is not allowed
+. 
+. 
+. // Close log
+. log close  
+      name:  <unnamed>
+       log:  C:\Dropbox\19_PSQF7375_Clustered\PSQF7375_Clustered_Example4\PSQF7375_Clustered_Example4_STATA_Output.log
+  log type:  text
+ closed on:  21 Oct 2019, 09:39:31
+------------------------------------------------------------------------------------------------------------------------------------------------------

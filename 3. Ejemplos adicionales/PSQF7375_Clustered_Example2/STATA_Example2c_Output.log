@@ -1,0 +1,696 @@
+------------------------------------------------------------------------------------------------------------------------------------------------------
+      name:  STATA_Example2c
+       log:  C:\Dropbox\19_PSQF7375_Clustered\PSQF7375_Clustered_Example2\STATA_Example2c_Output.log
+  log type:  text
+ opened on:   2 Aug 2019, 10:08:57
+
+.           
+. display as result "Eq 2.13: Adding Sex by Dementia Interaction"
+Eq 2.13: Adding Sex by Dementia Interaction
+
+. display as result "Sex (0=Men), Dementia (0=None)"
+Sex (0=Men), Dementia (0=None)
+
+. mixed cognition c.age85 c.grip9 c.sexmw c.demnf c.demnc ///
+>                 c.age85#c.grip9 c.sexmw#c.demnf c.sexmw#c.demnc, ///
+>                   variance reml dfmethod(residual),
+
+Computing degrees of freedom:
+
+Mixed-effects REML regression                   Number of obs     =        550
+DF method: Residual                             DF:           min =     541.00
+                                                              avg =     541.00
+                                                              max =     541.00
+
+                                                F(8,   541.00)    =      28.77
+Log restricted-likelihood = -1998.7039          Prob > F          =     0.0000
+
+---------------------------------------------------------------------------------
+      cognition |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+----------------+----------------------------------------------------------------
+          age85 |  -.3347988   .1198875    -2.79   0.005    -.5703009   -.0992966
+          grip9 |   .6178929   .1480794     4.17   0.000     .3270117     .908774
+          sexmw |  -2.875594   1.011237    -2.84   0.005    -4.862027   -.8891616
+          demnf |  -6.055901   1.635126    -3.70   0.000    -9.267875   -2.843927
+          demnc |  -11.97073   2.244954    -5.33   0.000    -16.38062   -7.560836
+                |
+c.age85#c.grip9 |   .1221516   .0403529     3.03   0.003     .0428841    .2014191
+                |
+c.sexmw#c.demnf |     .16427   2.070475     0.08   0.937    -3.902886    4.231426
+                |
+c.sexmw#c.demnc |    -7.8751   3.024536    -2.60   0.009    -13.81637   -1.933825
+                |
+          _cons |   29.07015   .7484992    38.84   0.000     27.59983    30.54047
+---------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------
+  Random-effects Parameters  |   Estimate   Std. Err.     [95% Conf. Interval]
+-----------------------------+------------------------------------------------
+               var(Residual) |   85.97242   5.184332      76.38881    96.75836
+------------------------------------------------------------------------------
+
+.           predict predsexbydem, xb              
+
+.           corr cognition predsexbydem  // model R2
+(obs=550)
+
+             | cognit~n predse~m
+-------------+------------------
+   cognition |   1.0000
+predsexbydem |   0.5463   1.0000
+
+
+.       display as result r(rho)^2
+.29843883
+
+. test (c.sexmw#c.demnf=0) (c.sexmw#c.demnc=0), small // Omnibus Dementia*Sex Interaction Test
+
+ ( 1)  [cognition]c.sexmw#c.demnf = 0
+ ( 2)  [cognition]c.sexmw#c.demnc = 0
+
+       F(  2,541.00) =    3.49
+            Prob > F =    0.0311
+
+. margins, at(c.age85=0 c.grip9=0 c.sexmw=(0(1)1) c.demnf=0 c.demnc=0) vsquish, // Intercepts for None
+
+Adjusted predictions                            Number of obs     =        550
+
+Expression   : Linear prediction, fixed portion, predict()
+1._at        : age85           =           0
+               grip9           =           0
+               sexmw           =           0
+               demnf           =           0
+               demnc           =           0
+2._at        : age85           =           0
+               grip9           =           0
+               sexmw           =           1
+               demnf           =           0
+               demnc           =           0
+
+------------------------------------------------------------------------------
+             |            Delta-method
+             |     Margin   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         _at |
+          1  |   29.07015   .7484992    38.84   0.000     27.60311    30.53718
+          2  |   26.19455    .638834    41.00   0.000     24.94246    27.44664
+------------------------------------------------------------------------------
+
+. margins, at(c.age85=0 c.grip9=0 c.sexmw=(0(1)1) c.demnf=1 c.demnc=0) vsquish, // Intercepts for Future
+
+Adjusted predictions                            Number of obs     =        550
+
+Expression   : Linear prediction, fixed portion, predict()
+1._at        : age85           =           0
+               grip9           =           0
+               sexmw           =           0
+               demnf           =           1
+               demnc           =           0
+2._at        : age85           =           0
+               grip9           =           0
+               sexmw           =           1
+               demnf           =           1
+               demnc           =           0
+
+------------------------------------------------------------------------------
+             |            Delta-method
+             |     Margin   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         _at |
+          1  |   23.01424    1.49276    15.42   0.000     20.08849       25.94
+          2  |   20.30292   1.118633    18.15   0.000     18.11044     22.4954
+------------------------------------------------------------------------------
+
+. margins, at(c.age85=0 c.grip9=0 c.sexmw=(0(1)1) c.demnf=0 c.demnc=1) vsquish, // Intercepts for Current
+
+Adjusted predictions                            Number of obs     =        550
+
+Expression   : Linear prediction, fixed portion, predict()
+1._at        : age85           =           0
+               grip9           =           0
+               sexmw           =           0
+               demnf           =           0
+               demnc           =           1
+2._at        : age85           =           0
+               grip9           =           0
+               sexmw           =           1
+               demnf           =           0
+               demnc           =           1
+
+------------------------------------------------------------------------------
+             |            Delta-method
+             |     Margin   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         _at |
+          1  |   17.09942   2.140218     7.99   0.000     12.90467    21.29417
+          2  |   6.348722    1.94788     3.26   0.001     2.530947     10.1665
+------------------------------------------------------------------------------
+
+. lincom c.sexmw*1 + c.sexmw#c.demnf*0 + c.sexmw#demnc*0, small  // Sex Difference for None Dementia
+
+ ( 1)  [cognition]sexmw = 0
+
+------------------------------------------------------------------------------
+   cognition |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         (1) |  -2.875594   1.011237    -2.84   0.005    -4.862027   -.8891616
+------------------------------------------------------------------------------
+
+. lincom c.sexmw*1 + c.sexmw#c.demnf*1 + c.sexmw#demnc*0, small  // Sex Difference for Future Dementia
+
+ ( 1)  [cognition]sexmw + [cognition]c.sexmw#c.demnf = 0
+
+------------------------------------------------------------------------------
+   cognition |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         (1) |  -2.711324   1.874069    -1.45   0.149    -6.392667    .9700192
+------------------------------------------------------------------------------
+
+. lincom c.sexmw*1 + c.sexmw#c.demnf*0 + c.sexmw#demnc*1, small  // Sex Difference for Current Dementia
+
+ ( 1)  [cognition]sexmw + [cognition]c.sexmw#c.demnc = 0
+
+------------------------------------------------------------------------------
+   cognition |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         (1) |  -10.75069   2.899323    -3.71   0.000      -16.446   -5.055383
+------------------------------------------------------------------------------
+
+. lincom c.demnf*1 + c.sexmw#c.demnf*0, small                    // None-Future Difference for Men
+
+ ( 1)  [cognition]demnf = 0
+
+------------------------------------------------------------------------------
+   cognition |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         (1) |  -6.055901   1.635126    -3.70   0.000    -9.267875   -2.843927
+------------------------------------------------------------------------------
+
+. lincom c.demnf*1 + c.sexmw#c.demnf*1, small                    // None-Future Difference for Women
+
+ ( 1)  [cognition]demnf + [cognition]c.sexmw#c.demnf = 0
+
+------------------------------------------------------------------------------
+   cognition |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         (1) |  -5.891631   1.277761    -4.61   0.000    -8.401612   -3.381651
+------------------------------------------------------------------------------
+
+. lincom c.demnc*1 + c.sexmw#c.demnc*0, small                            // None-Current Difference for Men
+
+ ( 1)  [cognition]demnc = 0
+
+------------------------------------------------------------------------------
+   cognition |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         (1) |  -11.97073   2.244954    -5.33   0.000    -16.38062   -7.560836
+------------------------------------------------------------------------------
+
+. lincom c.demnc*1 + c.sexmw#c.demnc*1, small                    // None-Current Difference for Women 
+
+ ( 1)  [cognition]demnc + [cognition]c.sexmw#c.demnc = 0
+
+------------------------------------------------------------------------------
+   cognition |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         (1) |  -19.84583   2.028583    -9.78   0.000    -23.83069   -15.86097
+------------------------------------------------------------------------------
+
+. lincom c.demnf*-1 + c.demnc*1 + c.sexmw#c.demnf*0  + c.sexmw#c.demnc*0, small // Fut-Cur Diff for Men
+
+ ( 1)  - [cognition]demnf + [cognition]demnc = 0
+
+------------------------------------------------------------------------------
+   cognition |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         (1) |  -5.914829   2.586762    -2.29   0.023    -10.99616      -.8335
+------------------------------------------------------------------------------
+
+. lincom c.demnf*-1 + c.demnc*1 + c.sexmw#c.demnf*-1 + c.sexmw#c.demnc*1, small // Fut-Cur Diff for Women
+
+ ( 1)  - [cognition]demnf + [cognition]demnc - [cognition]c.sexmw#c.demnf + [cognition]c.sexmw#c.demnc = 0
+
+------------------------------------------------------------------------------
+   cognition |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         (1) |   -13.9542   2.238917    -6.23   0.000    -18.35223   -9.556162
+------------------------------------------------------------------------------
+
+. lincom c.sexmw#c.demnf*1, small                      // None-Future Sex Difference
+
+ ( 1)  [cognition]c.sexmw#c.demnf = 0
+
+------------------------------------------------------------------------------
+   cognition |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         (1) |     .16427   2.070475     0.08   0.937    -3.902886    4.231426
+------------------------------------------------------------------------------
+
+. lincom c.sexmw#c.demnc*1, small                      // None-Current Sex Difference
+
+ ( 1)  [cognition]c.sexmw#c.demnc = 0
+
+------------------------------------------------------------------------------
+   cognition |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         (1) |    -7.8751   3.024536    -2.60   0.009    -13.81637   -1.933825
+------------------------------------------------------------------------------
+
+. lincom c.sexmw#c.demnf*-1 + c.sexmw#c.demnc*1, small // Future-Current Sex Difference
+
+ ( 1)  - [cognition]c.sexmw#c.demnf + [cognition]c.sexmw#c.demnc = 0
+
+------------------------------------------------------------------------------
+   cognition |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         (1) |   -8.03937   3.415165    -2.35   0.019    -14.74798   -1.330761
+------------------------------------------------------------------------------
+
+. 
+. display as result "Continuous Sex (0=Men) and Categorical Dementia (Ref=Current)"
+Continuous Sex (0=Men) and Categorical Dementia (Ref=Current)
+
+. mixed cognition c.age85 c.grip9 c.sexmw i.demgroup  ///
+>                 c.age85#c.grip9 c.sexmw#i.demgroup, ///
+>                   variance reml dfmethod(residual),
+
+Computing degrees of freedom:
+
+Mixed-effects REML regression                   Number of obs     =        550
+DF method: Residual                             DF:           min =     541.00
+                                                              avg =     541.00
+                                                              max =     541.00
+
+                                                F(8,   541.00)    =      28.77
+Log restricted-likelihood = -1998.7039          Prob > F          =     0.0000
+
+----------------------------------------------------------------------------------
+       cognition |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-----------------+----------------------------------------------------------------
+           age85 |  -.3347988   .1198875    -2.79   0.005    -.5703009   -.0992966
+           grip9 |   .6178929   .1480794     4.17   0.000     .3270117     .908774
+           sexmw |  -2.875594   1.011237    -2.84   0.005    -4.862027   -.8891616
+                 |
+        demgroup |
+        2Future  |  -6.055901   1.635126    -3.70   0.000    -9.267875   -2.843927
+       3Current  |  -11.97073   2.244954    -5.33   0.000    -16.38062   -7.560836
+                 |
+ c.age85#c.grip9 |   .1221516   .0403529     3.03   0.003     .0428841    .2014191
+                 |
+demgroup#c.sexmw |
+        2Future  |     .16427   2.070475     0.08   0.937    -3.902886    4.231426
+       3Current  |    -7.8751   3.024536    -2.60   0.009    -13.81637   -1.933825
+                 |
+           _cons |   29.07015   .7484992    38.84   0.000     27.59983    30.54047
+----------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------
+  Random-effects Parameters  |   Estimate   Std. Err.     [95% Conf. Interval]
+-----------------------------+------------------------------------------------
+               var(Residual) |   85.97242   5.184332      76.38881    96.75836
+------------------------------------------------------------------------------
+
+.       contrast c.sexmw#i.demgroup, small // Omnibus test of sex*dementia interaction
+
+Contrasts of marginal linear predictions
+
+Margins      : asbalanced
+
+---------------------------------------------------------------
+                 |         df        ddf           F        P>F
+-----------------+---------------------------------------------
+cognition        |
+demgroup#c.sexmw |          2     541.00        3.49     0.0311
+---------------------------------------------------------------
+
+.       margins  i.demgroup, at(c.sexmw=(0(.5)1) c.age85=0 c.grip9=0)vsquish // Intercepts per cell        
+
+Adjusted predictions                            Number of obs     =        550
+
+Expression   : Linear prediction, fixed portion, predict()
+1._at        : age85           =           0
+               grip9           =           0
+               sexmw           =           0
+2._at        : age85           =           0
+               grip9           =           0
+               sexmw           =          .5
+3._at        : age85           =           0
+               grip9           =           0
+               sexmw           =           1
+
+------------------------------------------------------------------------------
+             |            Delta-method
+             |     Margin   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+_at#demgroup |
+    1#1None  |   29.07015   .7484992    38.84   0.000     27.60311    30.53718
+  1#2Future  |   23.01424    1.49276    15.42   0.000     20.08849       25.94
+ 1#3Current  |   17.09942   2.140218     7.99   0.000     12.90467    21.29417
+    2#1None  |   27.63235   .4780479    57.80   0.000     26.69539    28.56931
+  2#2Future  |   21.65858   .9283335    23.33   0.000     19.83908    23.47808
+ 2#3Current  |   11.72407   1.444253     8.12   0.000     8.893385    14.55475
+    3#1None  |   26.19455    .638834    41.00   0.000     24.94246    27.44664
+  3#2Future  |   20.30292   1.118633    18.15   0.000     18.11044     22.4954
+ 3#3Current  |   6.348722    1.94788     3.26   0.001     2.530947     10.1665
+------------------------------------------------------------------------------
+
+.       margins  i.demgroup, at(c.sexmw=.5 c.age85=0 c.grip9=0) ///
+>                                    pwcompare(pveffects) df(541) vsquish // Dem pairwise for MEAN sex        
+
+Pairwise comparisons of adjusted predictions
+
+Expression   : Linear prediction, fixed portion, predict()
+at           : age85           =           0
+               grip9           =           0
+               sexmw           =          .5
+
+-------------------------------------------------------------
+                     |            Delta-method    Unadjusted
+                     |   Contrast   Std. Err.      t    P>|t|
+---------------------+---------------------------------------
+            demgroup |
+   2Future vs 1None  |  -5.973766   1.039922    -5.74   0.000
+  3Current vs 1None  |  -15.90828   1.513449   -10.51   0.000
+3Current vs 2Future  |  -9.934514   1.713536    -5.80   0.000
+-------------------------------------------------------------
+
+.       margins  i.demgroup, at(c.sexmw=0 c.age85=0 c.grip9=0) ///
+>                                    pwcompare(pveffects) df(541) vsquish // Dem pairwise for Men         
+
+Pairwise comparisons of adjusted predictions
+
+Expression   : Linear prediction, fixed portion, predict()
+at           : age85           =           0
+               grip9           =           0
+               sexmw           =           0
+
+-------------------------------------------------------------
+                     |            Delta-method    Unadjusted
+                     |   Contrast   Std. Err.      t    P>|t|
+---------------------+---------------------------------------
+            demgroup |
+   2Future vs 1None  |  -6.055901   1.635126    -3.70   0.000
+  3Current vs 1None  |  -11.97073   2.244954    -5.33   0.000
+3Current vs 2Future  |  -5.914829   2.586762    -2.29   0.023
+-------------------------------------------------------------
+
+.       margins  i.demgroup, at(c.sexmw=1 c.age85=0 c.grip9=0) ///
+>                                    pwcompare(pveffects) df(541) vsquish // Dem pairwise for Women
+
+Pairwise comparisons of adjusted predictions
+
+Expression   : Linear prediction, fixed portion, predict()
+at           : age85           =           0
+               grip9           =           0
+               sexmw           =           1
+
+-------------------------------------------------------------
+                     |            Delta-method    Unadjusted
+                     |   Contrast   Std. Err.      t    P>|t|
+---------------------+---------------------------------------
+            demgroup |
+   2Future vs 1None  |  -5.891631   1.277761    -4.61   0.000
+  3Current vs 1None  |  -19.84583   2.028583    -9.78   0.000
+3Current vs 2Future  |   -13.9542   2.238917    -6.23   0.000
+-------------------------------------------------------------
+
+.       lincom c.sexmw*1 + c.sexmw#i1.demgroup*1, small  // Sex diff for None
+
+ ( 1)  [cognition]sexmw + [cognition]1b.demgroup#co.sexmw = 0
+
+------------------------------------------------------------------------------
+   cognition |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         (1) |  -2.875594   1.011237    -2.84   0.005    -4.862027   -.8891616
+------------------------------------------------------------------------------
+
+.       lincom c.sexmw*1 + c.sexmw#i2.demgroup*1, small  // Sex diff for Future
+
+ ( 1)  [cognition]sexmw + [cognition]2.demgroup#c.sexmw = 0
+
+------------------------------------------------------------------------------
+   cognition |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         (1) |  -2.711324   1.874069    -1.45   0.149    -6.392667    .9700192
+------------------------------------------------------------------------------
+
+.       lincom c.sexmw*1 + c.sexmw#i3.demgroup*1, small  // Sex diff for Current
+
+ ( 1)  [cognition]sexmw + [cognition]3.demgroup#c.sexmw = 0
+
+------------------------------------------------------------------------------
+   cognition |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         (1) |  -10.75069   2.899323    -3.71   0.000      -16.446   -5.055383
+------------------------------------------------------------------------------
+
+.       lincom c.sexmw#i1.demgroup*-1 + c.sexmw#i2.demgroup*1, small  // None-Future Sex Diff
+
+ ( 1)  - [cognition]1b.demgroup#co.sexmw + [cognition]2.demgroup#c.sexmw = 0
+
+------------------------------------------------------------------------------
+   cognition |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         (1) |     .16427   2.070475     0.08   0.937    -3.902886    4.231426
+------------------------------------------------------------------------------
+
+.       lincom c.sexmw#i1.demgroup*-1 + c.sexmw#i3.demgroup*1, small  // None-Current Sex Diff
+
+ ( 1)  - [cognition]1b.demgroup#co.sexmw + [cognition]3.demgroup#c.sexmw = 0
+
+------------------------------------------------------------------------------
+   cognition |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         (1) |    -7.8751   3.024536    -2.60   0.009    -13.81637   -1.933825
+------------------------------------------------------------------------------
+
+.       lincom c.sexmw#i2.demgroup*-1 + c.sexmw#i3.demgroup*1, small  // Future-Current Sex Diff
+
+ ( 1)  - [cognition]2.demgroup#c.sexmw + [cognition]3.demgroup#c.sexmw = 0
+
+------------------------------------------------------------------------------
+   cognition |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         (1) |   -8.03937   3.415165    -2.35   0.019    -14.74798   -1.330761
+------------------------------------------------------------------------------
+
+. 
+. 
+. display as result "Categorical Sex (Ref=Women) and Categorical Dementia (Ref=Current)" 
+Categorical Sex (Ref=Women) and Categorical Dementia (Ref=Current)
+
+. mixed cognition c.age85 c.grip9 i.sexmw i.demgroup ///
+>                 c.age85#c.grip9 i.sexmw#i.demgroup, ///
+>                  variance reml dfmethod(residual), 
+
+Computing degrees of freedom:
+
+Mixed-effects REML regression                   Number of obs     =        550
+DF method: Residual                             DF:           min =     541.00
+                                                              avg =     541.00
+                                                              max =     541.00
+
+                                                F(8,   541.00)    =      28.77
+Log restricted-likelihood = -1998.7039          Prob > F          =     0.0000
+
+----------------------------------------------------------------------------------
+       cognition |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-----------------+----------------------------------------------------------------
+           age85 |  -.3347988   .1198875    -2.79   0.005    -.5703009   -.0992966
+           grip9 |   .6178929   .1480794     4.17   0.000     .3270117     .908774
+                 |
+           sexmw |
+         1Women  |  -2.875594   1.011237    -2.84   0.005    -4.862027   -.8891616
+                 |
+        demgroup |
+        2Future  |  -6.055901   1.635126    -3.70   0.000    -9.267875   -2.843927
+       3Current  |  -11.97073   2.244954    -5.33   0.000    -16.38062   -7.560836
+                 |
+ c.age85#c.grip9 |   .1221516   .0403529     3.03   0.003     .0428841    .2014191
+                 |
+  sexmw#demgroup |
+ 1Women#2Future  |     .16427   2.070475     0.08   0.937    -3.902886    4.231426
+1Women#3Current  |    -7.8751   3.024536    -2.60   0.009    -13.81637   -1.933825
+                 |
+           _cons |   29.07015   .7484992    38.84   0.000     27.59983    30.54047
+----------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------
+  Random-effects Parameters  |   Estimate   Std. Err.     [95% Conf. Interval]
+-----------------------------+------------------------------------------------
+               var(Residual) |   85.97242   5.184332      76.38881    96.75836
+------------------------------------------------------------------------------
+
+. contrast i.sexmw#i.demgroup, small // Omnibus interaction test
+
+Contrasts of marginal linear predictions
+
+Margins      : asbalanced
+
+-------------------------------------------------------------
+               |         df        ddf           F        P>F
+---------------+---------------------------------------------
+cognition      |
+sexmw#demgroup |          2     541.00        3.49     0.0311
+-------------------------------------------------------------
+
+. margins  i.sexmw#i.demgroup, at(c.age85=0 c.grip9=0) // cell means 
+
+Adjusted predictions                            Number of obs     =        550
+
+Expression   : Linear prediction, fixed portion, predict()
+at           : age85           =           0
+               grip9           =           0
+
+----------------------------------------------------------------------------------
+                 |            Delta-method
+                 |     Margin   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-----------------+----------------------------------------------------------------
+  sexmw#demgroup |
+     0Men#1None  |   29.07015   .7484992    38.84   0.000     27.60311    30.53718
+   0Men#2Future  |   23.01424    1.49276    15.42   0.000     20.08849       25.94
+  0Men#3Current  |   17.09942   2.140218     7.99   0.000     12.90467    21.29417
+   1Women#1None  |   26.19455    .638834    41.00   0.000     24.94246    27.44664
+ 1Women#2Future  |   20.30292   1.118633    18.15   0.000     18.11044     22.4954
+1Women#3Current  |   6.348722    1.94788     3.26   0.001     2.530947     10.1665
+----------------------------------------------------------------------------------
+
+. margins  i.sexmw#i.demgroup, pwcompare(pveffects)    df(541), // all cell comparisons
+
+Pairwise comparisons of predictive margins
+
+Expression   : Linear prediction, fixed portion, predict()
+
+-------------------------------------------------------------------------------
+                                       |            Delta-method    Unadjusted
+                                       |   Contrast   Std. Err.      t    P>|t|
+---------------------------------------+---------------------------------------
+                        sexmw#demgroup |
+       (0Men#2Future) vs (0Men#1None)  |  -6.055901   1.635126    -3.70   0.000
+      (0Men#3Current) vs (0Men#1None)  |  -11.97073   2.244954    -5.33   0.000
+       (1Women#1None) vs (0Men#1None)  |  -2.875594   1.011237    -2.84   0.005
+     (1Women#2Future) vs (0Men#1None)  |  -8.767226   1.352249    -6.48   0.000
+    (1Women#3Current) vs (0Men#1None)  |  -22.72142   2.098109   -10.83   0.000
+    (0Men#3Current) vs (0Men#2Future)  |  -5.914829   2.586762    -2.29   0.023
+     (1Women#1None) vs (0Men#2Future)  |   3.180307   1.650939     1.93   0.055
+   (1Women#2Future) vs (0Men#2Future)  |  -2.711324   1.874069    -1.45   0.149
+  (1Women#3Current) vs (0Men#2Future)  |  -16.66552   2.472402    -6.74   0.000
+    (1Women#1None) vs (0Men#3Current)  |   9.095136   2.243604     4.05   0.000
+  (1Women#2Future) vs (0Men#3Current)  |   3.203505   2.417887     1.32   0.186
+ (1Women#3Current) vs (0Men#3Current)  |  -10.75069   2.899323    -3.71   0.000
+   (1Women#2Future) vs (1Women#1None)  |  -5.891631   1.277761    -4.61   0.000
+  (1Women#3Current) vs (1Women#1None)  |  -19.84583   2.028583    -9.78   0.000
+(1Women#3Current) vs (1Women#2Future)  |   -13.9542   2.238917    -6.23   0.000
+-------------------------------------------------------------------------------
+
+. margins  i.sexmw@i.demgroup, at(c.age85=0 c.grip9=0) df(541), // Simple effect of sex per demgroup
+
+Contrasts of adjusted predictions
+
+Expression   : Linear prediction, fixed portion, predict()
+at           : age85           =           0
+               grip9           =           0
+
+--------------------------------------------------
+               |         df           F        P>F
+---------------+----------------------------------
+sexmw@demgroup |
+        1None  |          1        8.09     0.0046
+      2Future  |          1        2.09     0.1485
+     3Current  |          1       13.75     0.0002
+        Joint  |          3        7.43     0.0001
+               |
+   Denominator |        541
+--------------------------------------------------
+
+. margins  i.demgroup@i.sexmw, at(c.age85=0 c.grip9=0) df(541), // Simple effect of demgroup per sex
+
+Contrasts of adjusted predictions
+
+Expression   : Linear prediction, fixed portion, predict()
+at           : age85           =           0
+               grip9           =           0
+
+--------------------------------------------------
+               |         df           F        P>F
+---------------+----------------------------------
+demgroup@sexmw |
+         0Men  |          2       18.69     0.0000
+       1Women  |          2       53.16     0.0000
+        Joint  |          4       35.91     0.0000
+               |
+   Denominator |        541
+--------------------------------------------------
+
+. contrast {i.sexmw#i.demgroup -1  1  0  1 -1  0}, small // None-Future Sex Diff
+
+Contrasts of marginal linear predictions
+
+Margins      : asbalanced
+
+-------------------------------------------------------------
+               |         df        ddf           F        P>F
+---------------+---------------------------------------------
+cognition      |
+sexmw#demgroup |          1     541.00        0.01     0.9368
+-------------------------------------------------------------
+
+------------------------------------------------------------------------------
+               |   Contrast   Std. Err.           DF      [95% Conf. Interval]
+---------------+--------------------------------------------------------------
+cognition      |
+sexmw#demgroup |
+      (1) (1)  |    -.16427   2.070475         541.0     -4.231426    3.902886
+------------------------------------------------------------------------------
+
+. contrast {i.sexmw#i.demgroup -1  0  1  1  0 -1}, small // None-Current Sex Diff 
+
+Contrasts of marginal linear predictions
+
+Margins      : asbalanced
+
+-------------------------------------------------------------
+               |         df        ddf           F        P>F
+---------------+---------------------------------------------
+cognition      |
+sexmw#demgroup |          1     541.00        6.78     0.0095
+-------------------------------------------------------------
+
+------------------------------------------------------------------------------
+               |   Contrast   Std. Err.           DF      [95% Conf. Interval]
+---------------+--------------------------------------------------------------
+cognition      |
+sexmw#demgroup |
+      (1) (1)  |     7.8751   3.024536         541.0      1.933825    13.81637
+------------------------------------------------------------------------------
+
+. contrast {i.sexmw#i.demgroup  0 -1  1  0  1 -1}, small // Future-Current Sex Diff
+
+Contrasts of marginal linear predictions
+
+Margins      : asbalanced
+
+-------------------------------------------------------------
+               |         df        ddf           F        P>F
+---------------+---------------------------------------------
+cognition      |
+sexmw#demgroup |          1     541.00        5.54     0.0189
+-------------------------------------------------------------
+
+------------------------------------------------------------------------------
+               |   Contrast   Std. Err.           DF      [95% Conf. Interval]
+---------------+--------------------------------------------------------------
+cognition      |
+sexmw#demgroup |
+      (1) (1)  |    8.03937   3.415165         541.0      1.330761    14.74798
+------------------------------------------------------------------------------
+
+. 
+. 
+. * Close log
+. log close STATA_Example2c
+      name:  STATA_Example2c
+       log:  C:\Dropbox\19_PSQF7375_Clustered\PSQF7375_Clustered_Example2\STATA_Example2c_Output.log
+  log type:  text
+ closed on:   2 Aug 2019, 10:08:59
+------------------------------------------------------------------------------------------------------------------------------------------------------
