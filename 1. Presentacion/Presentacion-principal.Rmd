@@ -66,7 +66,7 @@ Por tanto, el objetivo de esta investigación es:
 
 ## Diseño
 
-Este es un estudio cuantitativo de diseño transversal, centrado en los resultados de la PDT de Matemática del año 2022. Además del análisis descriptivo de los puntajes promedio en esta prueba según variables socioeconómicas individuales y escolares, se estimó un modelo de regresión lineal multinivel para analizar el efecto que variables socioeconómicas tuvieron sobre los distintos niveles de rendimiento.
+Este es un estudio cuantitativo de diseño transversal, centrado en los resultados de la PDT de Matemática del año 2022. Además del análisis bivariante de los puntajes promedio en esta prueba según variables socioeconómicas individuales y escolares, se estimó un modelo de regresión lineal multinivel para analizar el efecto que variables socioeconómicas tuvieron sobre los distintos niveles de rendimiento.
 
 ## Datos
 
@@ -74,16 +74,16 @@ Los datos corresponden al proceso de admisión del año 2022, los cuales fueron 
 
 ## Muestra
 
-Originalmente existen 281.457 registros en la base de datos del proceso de admisión 2022 provista por el DEMRE. Según el objetivo de investigación y el análisis propuesto, solamente dos fitros fueron aplicados:
+Originalmente existen 281.457 registros en la base de datos del proceso de admisión 2022 provista por el DEMRE. Según el objetivo de investigación y el análisis propuesto, dos fitros fueron aplicados:
 
-1. El estudiante debe tener un puntaje válido (entre 150 y 850 puntos) en la PDT de Matemática.
+1. El estudiante debe contar con datos válidos en todo el set de variables de análisis.
 2. El colegio en el cual estudió el postulante debe contar con al menos 10 registros.
 
 El primer filtro se aplica de cualquier modo a la muestra, ya que el modelo utiliza `eliminación por lista` (listwise deletion) para estimar los parámetros. Además, ambos filtros ayudan en la construcción de las variables de nivel 2 para los predictores de nivel 1.
 
-La muestra final estuvo constituida por 229.884 postulantes. Sin embargo, para probar la capacidad predictiva del modelo, se utilizó validación cruzada [@james2013introduction], específicamente un conjunto de validación que representa la mitad de la muestra (seleccionada aleatoriamente según colegio [RBD]). En el primer conjunto de datos se estiman los diferentes modelos de interés hasta obtener la versión final, luego, en el conjunto de validación, se ajusta el mismo modelo y se comparan los estadísticos de ajuste.
+La muestra final estuvo constituida por 147.562 postulantes. Sin embargo, para probar la capacidad predictiva del modelo, se utilizó validación cruzada [@james2013introduction], específicamente un conjunto de validación que representa la mitad de la muestra (seleccionada aleatoriamente según colegio [RBD]). En el primer conjunto de datos se estiman los diferentes modelos de interés hasta obtener la versión final, luego, en el conjunto de validación, se ajusta el mismo modelo y se comparan los estadísticos de ajuste.
 
-En particular, el conjunto de entrenamiento estuvo constituido por 114.762 postulantes pertenencientes a 1550 colegios. El conjunto de validación estuvo constituido por 114.231 casos distribuidos en 1550 colegios.
+En particular, el conjunto de entrenamiento estuvo constituido por 72.968 postulantes pertenencientes a xxxx colegios. El conjunto de validación estuvo constituido por 74.594 casos distribuidos en xxxx colegios.
 
 ## Variables
 
@@ -100,7 +100,7 @@ De la base de datos original, se utilizaron:
 
 Estas variables fueron manipuladas para identificar valores perdidos, recategorizar valores, y formar un nuevo conjunto de datos. Además, se utilizaron datos del [Portal de Datos Abiertos](https://datosabiertos.mineduc.cl/) del Ministerio de Educación para fortalecer la contextualización de la experiencia educativa de los estudiantes.
 
-Particularmente, se incluyeron las siguientes variables del establecimiento educacional:
+Particularmente, se incluyeron las siguientes variables sobre los establecimientos educacionales:
 
 - Territorio, Urbano o Rural
 - Situación de Convenio SEP (Subvención Escolar Preferencial), Si o No
@@ -115,11 +115,11 @@ En primer lugar, se realizaron análisis descriptivos y correlacionales entre lo
 
 Luego, se estimaron varios modelos de regresión. El primero fue un modelo vacío (**empty model**) de dos niveles (varianza residual a nivel 1 y varianza del intercepto aleatorio a nivel 2) con la variable dependiente para estimar el Indice de Correlación Intraclase (ICC) que justifica la utilización de un modelo multinivel. Luego, se estimaron otros modelos nulos para cada predictor de nivel, los cuales ayudan a determinar si es que estas variables tienen varianza significativa a nivel 2, lo cual justificaría la creación de nuevas variables para identificar adecuadamente los efectos de cada predictor en su respectivo nivel. Cada uno de estos modelos nulos fue comparado con su versión simplificada mediante Test de Verosimilitud (Likelihood Ratio Test, o LRT) para decidir si efectos aleatorios eran necesarios.
 
-Para los predictores de nivel 1 que mostraron varianza aleatoria significativa a nivel 2 se crearon nuevos predictores que representaran esta información. Respecto a la parametrización escogida, los modelos fueron estimados con predictores centrados en un estadístico a nivel 1 (en la media del grupo) y en una constante a nivel 2. Esto provoca que los efectos de nivel 1 se interpreten como diferencias entre estudiantes al interior de un mismo colegio y que los efectos de nivel 2 estén representando las diferencias entre colegios. Sin embargo, para este artículo son de interés los efectos contextuales a nivel 2. Estos efectos son el resultado del efecto a nivel 2 menos el efecto a nivel 1 del predictor, los cuales se interpretan como la contribución adicional que tiene el contexto (media del grupo) sobre el valor individual en la estimación del resultado condicional, controlando por los valores individuales dentro del grupo. Los efectos contextuales se calcularon mediante combinaciones lineales.
+Para los predictores de nivel 1 que mostraron varianza aleatoria significativa a nivel 2 se crearon nuevos predictores que representaran esta información. Respecto a la parametrización escogida, los modelos fueron estimados con *predictores centrados en un estadístico* a nivel 1 (en la media del grupo) y en una *constante* a nivel 2. Esto provoca que los efectos de nivel 1 se interpreten como diferencias entre estudiantes al interior de un mismo colegio (**within-effect**) y que los efectos de nivel 2 estén representando las diferencias entre colegios (**between-effect**). Sin embargo, para este artículo son de interés los **efectos contextuales** a nivel 2. Estos efectos son el resultado del efecto a nivel 2 menos el efecto a nivel 1 del predictor, los cuales se interpretan como la *contribución adicional que tiene el contexto (media del grupo) sobre el valor individual en la estimación del resultado condicional, controlando por los valores individuales dentro del grupo*. Los efectos contextuales se calcularon mediante combinaciones lineales.
 
-Luego de ajustar los primeros modelos multinivel con los respectivos efectos a nivel 1 y nivel 2 de los predictores individuales, se agregaron los predictores a nivel 2. Estos modelos fueron estimados con Máxima Verosimilitud (direct ML) y comparados mediante LRT para escoger la versión con los parámetros que tienen la mayor probabilidad de producir los datos observados en la muestra [@enders2022applied].
+Luego de ajustar los primeros modelos multinivel con los respectivos efectos a nivel 1 y nivel 2 de los predictores individuales, se agregaron los predictores a nivel 2. Estos modelos fueron estimados con Máxima Verosimilitud (direct ML) y el criterio para remover predictores de pendientes individuales fue su p-valor en el modelo, mientras que para pendientes múltiples se utilizaron Wald test multivariados [@enders2022applied].
 
-Al tener la versión final con efectos fijos, se estimaron modelos con efectos aleatorios, los cuales fueron estimados utilizando Máxima Verosimilitud Restringida (REML), ya que solo se compararon efectos aleatorios. Para el modelo final se estimaron medidas de pseudo-R^2, total R^2, pendientes pseudo-estandarizadas para los predictores con efectos aleatorios, pendientes estandarizadas para los predictores sin efectos aleatorios, y se incluyeron figuras para mejorar la representación de las estimaciones del modelo.
+Al tener la versión final con efectos fijos, se ajustaron diversos modelos con efectos aleatorios, los cuales fueron estimados utilizando Máxima Verosimilitud Restringida (REML), ya que solo se compararon efectos aleatorios. Para el modelo final se estimaron medidas de pseudo-R^2, total R^2, pendientes pseudo-estandarizadas para los predictores con efectos aleatorios, pendientes estandarizadas para los predictores sin efectos aleatorios, y se incluyeron figuras para mejorar la representación de las estimaciones del modelo.
 
 Por último, se estimó el modelo final con efectos fijos y aleatorios en el conjunto de datos de validación y se compararon algunos índices de ajuste entre modelos. 
 
@@ -127,27 +127,29 @@ Por último, se estimó el modelo final con efectos fijos y aleatorios en el con
 
 ## Análisis bivariado
 
-En términos descriptivos, se observan diferencias entre las distribuciones de los puntajes en la PDT Matemática según atributos individuales y del colegio. En la Figura 1 se puede observar una tendencia en las diferencias, donde los puntajes promedio incrementan a medida que las características socioeconómicas mejoran.
+En términos descriptivos, se observan diferencias entre las distribuciones de los puntajes en la PDT Matemática según atributos individuales y de colegio. En la Figura 1 se puede observar una tendencia en las diferencias, donde los puntajes promedio incrementan a medida que las características socioeconómicas individuales mejoran.
 
-La línea vertical roja representa la media de rendimiento entre los estudiantes de la muestra (500,563, sd = 109.435; según el DEMRE, los puntajes PDT se calculan con una función de densidad acumulada Normal(µ=500,σ=110)). Con este valor como referencia, se puede observar que las mujeres obtuvieron mejores puntajes promedio que los hombres. Mientras que los estudiantes de quintiles 2 a 4 alcanzaron puntajes promedio, los quintiles 1 y 5 se diferencian notablemente a favor de los últimos. La educación del padre y la madre mostró diferencias en rendimiento a favor de estudiantes cuyo padre y/o madre alcanzó la educación superior.
+La línea vertical roja representa la media de rendimiento entre los estudiantes de la muestra (505,156, sd = 109,466; según el DEMRE, los puntajes PDT se calculan con una función de densidad acumulada Normal(µ=500,σ=110)). Con este valor como referencia, se puede observar que las mujeres obtuvieron mejores puntajes promedio que los hombres. Mientras que los estudiantes de quintiles 2 a 4 alcanzaron puntajes promedio cercanos al valor muestral, entre los quintiles 1 y 5 existe una notable a favor de los últimos. En cuanto a la educación familiar, la educación del padre y la madre mostró diferencias en rendimiento a favor de estudiantes cuyo padre y/o madre alcanzó la educación superior.
 
-Respecto a las variables de escuela, quienes asistieron a establecimientos Humanistas obtuvieron un rendimiento promedio mejor que sus pares de colegios técnicos. Los estudiantes de colegios rurales tuvieron un rendimiento promedio por debajo de la media general, al igual que los egresados de colegios con alguna forma de copago. Los estudiantes de colegios con SEP no lograron superar la media general, mientras que los egresados de colegios PACE fueron el grupo con menor rendimiento promedio en la PDT de Matemática. Finalmente, los estudiantes de colegios particulares privados, pese a su baja representación (11.690% de la muestra), alcanzaron la media más alta en la muestra (media = 602,634, sd = 109,600).
+Respecto a las variables de escuela, quienes asistieron a establecimientos Humanistas obtuvieron un rendimiento promedio mejor que sus pares de colegios técnicos. Los estudiantes de colegios rurales tuvieron un rendimiento promedio por debajo de la media general, al igual que los egresados de colegios con alguna forma de copago. Los estudiantes de colegios con SEP no lograron superar la media general, mientras que los egresados de colegios PACE también mostraron un rendimiento promedio por debajo de la media general. Finalmente, los estudiantes de colegios particulares privados, pese a su baja representación (11,830% de la muestra), alcanzaron la media más alta en la muestra (media = 612,985, sd = 109,018).
 
 **Figura 1**
 
 *Rendimiento en la PDT de Matemática según variables de caracterización*
 
-![Elaboración propia con datos del proceso de admisión 2022](https://github.com/Bladimir-PF/IESED2023-MultilevelAnalysis/blob/main/4.%20Tablas%20y%20figuras/Table%202.png?raw=true)
+![Elaboración propia con datos del proceso de admisión 2022](https://github.com/Bladimir-PF/IESED2023-MultilevelAnalysis/blob/main/4.%20Tablas%20y%20figuras/means.png?raw=true)
 
 &nbsp;
 
-La Tabla 2 muestra las correlaciones entre predictores y la variable dependiente, lo cual es útil para explorar posibles inconvenientes de colinearidad en el modelo de regresión. Por ejemplo, entre la educación del padre y la madre existe una correlación estimada de 0.684, lo cual puede vincularse con la tendencia de las personas a emparejarse con otros/as en similar posición social o entorno. En particular, se constataron altos niveles de correlación entre las variables de caracterización de la escuela, lo cual puede estar relacionado con el tipo de información que proveen: situación socioeconómica de los estudiantes.
+La Tabla 2 muestra las correlaciones entre predictores de diferentes niveles y la variable dependiente, lo cual es útil para explorar posibles inconvenientes de colinearidad en el modelo de regresión. Por ejemplo, entre la educación del padre y la madre existe una correlación estimada de 0.671. Además, se constataron altos niveles de correlación entre las variables de caracterización de la escuela, lo cual puede estar relacionado con el tipo de información que proveen.
 
 **Tabla 2**
 
 *Matriz de correlaciones entre las variables de interés*
 
-![Elaboración propia con datos del proceso de admisión 2022](https://github.com/Bladimir-PF/IESED2023-MultilevelAnalysis/blob/main/4.%20Tablas%20y%20figuras/Tabla%202.png?raw=true)
+![Elaboración propia con datos del proceso de admisión 2022](https://github.com/Bladimir-PF/IESED2023-MultilevelAnalysis/blob/main/4.%20Tablas%20y%20figuras/Table%202.png?raw=true)
+
+&nbsp;
 
 Una opción para reducir las dimensiones del modelo que pueden resultar redundantes es colapsar variables, aunque en este estudio no se realizó debido a la falta de una nueva variable que representara esa información. Algo que cabe destacar es que en el caso de la educación del padre y la madre se construyó la variable resumen Primera Generación, sin embargo, esta no resultó de utilidad en comparación con las variables originales.
 
@@ -157,7 +159,9 @@ A continuación se destacan los resultados más importantes de los múltiples mo
 
 <img src="https://i.redd.it/ikdymainj6p21.jpg"  width="60%" height="30%">
 
-El primer paso fue estimar un modelo multinivel vacío con la variable dependiente para calcular el ICC y establecer las fuentes de variación que cada predictor estaría tratando de reducir o explicar. La fórmula para calcular el ICC es sencilla;
+&nbsp;
+
+El primer paso fue estimar un modelo multinivel vacío con la variable dependiente para calcular el ICC y establecer las fuentes de variación que cada predictor estaría tratando de reducir o explicar. La fórmula para calcular el ICC es sencilla:
 
 ```{r, eval=FALSE}
 # Modelo vacío de un nivel
@@ -187,31 +191,19 @@ round(icc2[1,4]/(sum(icc2[,4])),3) # = 0.313
 ICC = \frac{\tau^2_{U_0}} {\tau^2_{U_0} + \sigma^2_e}
 \end{align}
 
-La Tabla 3 muestra las fuentes de varianza para la variable dependiente, con un ICC = `.286`, lo cual significa que aproximdamente el 28,6% de la variabilidad de los puntajes PDT Matemática corresponden a variación entre colegios a nivel 2, o lo que es igual, que la correlación promedio entre los residuos de estudiantes de un mismo colegio es **.286**.
+La Tabla 3 muestra las fuentes de varianza para la variable dependiente, con un ICC = `.313`, lo cual significa que aproximadamente el 31,3% de la variabilidad de los puntajes PDT Matemática corresponden a variación entre colegios a nivel 2, o lo que es igual, que la correlación de los residuos condicionales entre estudiantes de un mismo colegio es `.313` [@hoffman2015longitudinal].
 
 **Tabla 3**
 
 *Partición de varianza en modelos nulos para variable dependiente y predictores de nivel 1*
 
-```{r table1, echo=FALSE, message=FALSE, warnings=FALSE, results='asis'}
-tabl <- "
-|Modelo          	|Varianza residual|	Varianza del intercepto aleatorio |	ICC	 |Pr(>Chisq)|
-|---------------- |:---------------:|:---------------------------------:|:----:|:--------:|
-|PDT Matemática		|                 |                                   |      |          |
-| - 1 nivel	      |11664			      | -                                 |  -   |   -      |
-| - 2 niveles	    |8534	            | 3422	                            |0,286 |< ,01     |
-|Educación madre	|3,290	          | 1,496	                            |0,313 |< ,01     |
-|Educación padre	|3,290	          | 1,921	                            |0,369 |< ,01     |
-|Quintil	        |3,290	          | 0,927	                            |0,220 |< ,01     |
-|Sexo	            |3,290	          | 1,006	                            |0,234 |< ,01     |
-|Ranking  	      |13738	          | 2502	                            |0,154 |< ,01     |
-"
-cat(tabl)
-```
+![Elaboración propia con datos del proceso de admisión 2022](https://github.com/Bladimir-PF/IESED2023-MultilevelAnalysis/blob/main/4.%20Tablas%20y%20figuras/Table%203.png?raw=true)
 
-Como se puede observar, todos los predictores de nivel 1 tuvieron variación significativa en su intercepto aleatorio a nivel 2, por lo cual se crearon nuevas variables que representaron su contribución al modelamiento del puntaje en Matemática en distintos niveles. 
+&nbsp;
 
-El primer modelo multinivel incluyó todas las variables de interés, sin embargo, algunas pendientes no fueron significativas (como vimos en la matriz de correlaciones, la información de algunas variables fue redundante). La Tabla 4 muestra los índices de ajuste relativo de varios modelos revisados. Luego de remover las variables de Copago y Sector, se consiguió un ajuste más eficiente del modelo a los datos. Aunque la variable de Convenio SEP no logró la significancia estadística, al removerla se perdía información en el modelo, por lo cual se mantuvo para los próximos modelamientos 
+Como se puede observar, todos los predictores de nivel 1 tuvieron variación significativa en su intercepto aleatorio a nivel 2, por lo cual se crearon nuevas variables que representaron su contribución al modelamiento del puntaje en Matemática en distintos niveles. La varianza residual = 3,290 corresponde a la estimación de varianza a nivel 1 cuando la variable dependiente es categórica y se estima con función de enlace logit (var = `pi^2 / 3`).
+
+El primer modelo multinivel incluyó todas las variables de interés, sin embargo, algunas pendientes no fueron significativas (como vimos en la matriz de correlaciones, la información de algunas variables fue redundante). La Tabla 4 muestra la comparación de algunas versiones estimadas. Luego de remover las variables de Convenio SEP, Copago, Territorio y Sector, se consiguió un ajuste más eficiente del modelo a los datos.
 
 **Tabla 4**
 
@@ -219,15 +211,22 @@ El primer modelo multinivel incluyó todas las variables de interés, sin embarg
 
 ```{r table2, echo=FALSE, message=FALSE, warnings=FALSE, results='asis'}
 tabl <- "
-|Modelo          	|Parámetros|	LRT    |	p-valor	|Predictor a remover|
-|---------------- |:--------:|:-------:|:-''''---:|:-----------------:|
-|Modelo	completo	|30        | -       |  -       |Copago             |
-|Modelo 2	        |29        | 0,438	 |0.508     |Sector             |
-|Modelo 3	        |27        | ,474	   |0.789     |Convenio SEP       |
-|Modelo 4  	      |26        | 3674.429|< .01     |-                  |
+|Modelo          	|Parámetros|Predictor a remover|p-valor       |
+|---------------- |:--------:|:-----------------:|:------------:|
+|Modelo	completo	|30        |Convenio SEP |0.599|
+|Modelo 2	        |29        |Copago|0.160|
+|Modelo 3	        |28        |Territorio|0.227|
+|Modelo 4  	      |27        |Sector|0.775|
+|Modelo 5  	      |25        |-|-|
 "
 cat(tabl)
 ```
+
+A esta nueva versión se agregaron efectos aleatorios. Tras probar distintas opciones, la solución final de predictores se detalla en la Tabla 5. Para comparar las pendientes se calcularon pendientes pseudo estandarizadas según las indicaciones de Hoffman (2015).
+
+
+
+
 
 # Pseudo standardized scores
 
@@ -242,8 +241,10 @@ cat(tabl)
 
 # Conclusiones (preliminares)
 
+En relación con la pregunta de investigación, preliminarmente podemos concluir que:
 
-# Cosas por revisar
+- 
 
+- 
 
 # Referencias
