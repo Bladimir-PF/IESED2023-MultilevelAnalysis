@@ -125,6 +125,8 @@ Por último, se estimó el modelo final con efectos fijos y aleatorios en el con
 
 # Resultados
 
+## Análisis bivariado
+
 En términos descriptivos, se observan diferencias entre las distribuciones de los puntajes en la PDT Matemática según atributos individuales y del colegio. En la Figura 1 se puede observar una tendencia en las diferencias, donde los puntajes promedio incrementan a medida que las características socioeconómicas mejoran.
 
 La línea vertical roja representa la media de rendimiento entre los estudiantes de la muestra (500,563, sd = 109.435; según el DEMRE, los puntajes PDT se calculan con una función de densidad acumulada Normal(µ=500,σ=110)). Con este valor como referencia, se puede observar que las mujeres obtuvieron mejores puntajes promedio que los hombres. Mientras que los estudiantes de quintiles 2 a 4 alcanzaron puntajes promedio, los quintiles 1 y 5 se diferencian notablemente a favor de los últimos. La educación del padre y la madre mostró diferencias en rendimiento a favor de estudiantes cuyo padre y/o madre alcanzó la educación superior.
@@ -137,9 +139,103 @@ Respecto a las variables de escuela, quienes asistieron a establecimientos Human
 
 ![Elaboración propia con datos del proceso de admisión 2022](https://github.com/Bladimir-PF/IESED2023-MultilevelAnalysis/blob/main/4.%20Tablas%20y%20figuras/means.png?raw=true)
 
+La Tabla 2 muestra las correlaciones entre predictores y la variable dependiente, lo cual es útil para explorar posibles inconvenientes de colinearidad en el modelo de regresión. Por ejemplo, entre la educación del padre y la madre existe una correlación estimada de 0.684, lo cual puede vincularse con la tendencia de las personas a emparejarse con otros/as en similar posición social o entorno. En particular, se constataron altos niveles de correlación entre las variables de caracterización de la escuela, lo cual puede estar relacionado con el tipo de información que proveen: situación socioeconómica de los estudiantes.
+
+**Tabla 2**
+
+*Matriz de correlaciones entre las variables de interés*
+
+![Elaboración propia con datos del proceso de admisión 2022](https://github.com/Bladimir-PF/IESED2023-MultilevelAnalysis/blob/main/4.%20Tablas%20y%20figuras/Tabla%202.png?raw=true)
+
+Una opción para reducir las dimensiones del modelo que pueden resultar redundantes es colapsar variables, aunque en este estudio no se realizó debido a la falta de una nueva variable que representara esa información. Algo que cabe destacar es que en el caso de la educación del padre y la madre se construyó la variable resumen Primera Generación, sin embargo, esta no resultó de utilidad en comparación con las variables originales.
+
+## Análisis multinivel
+
+A continuación se destacan los resultados más importantes de los múltiples modelos de regresión explorados. 
+
+<img src="https://i.redd.it/ikdymainj6p21.jpg"  width="60%" height="30%">
+
+El primer paso fue estimar un modelo multinivel vacío con la variable dependiente para calcular el ICC y establecer las fuentes de variación que cada predictor estaría tratando de reducir o explicar. La fórmula para calcular el ICC es sencilla;
+
+```{r, eval=FALSE}
+# Modelo
+Modelo_vacio_VD <- lmer(
+  formula = MATH ~ 1 + (1|RBD),
+  control = lmerControl(optimizer = "Nelder_Mead"),
+  REML = TRUE,
+  data = training_data)
+
+# Información sobre el modelo
+summary(Modelo_vacio_VD, ddf="Satterthwaite"); llikAIC(Modelo_vacio_VD, chkREML=FALSE)
+
+# Ajuste en comparación a un modelo sin efectos aleatorios
+ranova(Modelo_vacio_VD, reduce.term=TRUE) # = 0.286
+
+# Cálculo del ICC
+icc(Modelo_vacio_VD) # con función del paquete performance
+
+icc2 <- data.frame(VarCorr(Modelo_vacio_VD),comp=c("Variance")) #Cálculo manual
+round(icc2[1,4]/(sum(icc2[,4])),3) # = 0.286
+```
+
+\begin{align}
+ICC = \frac{\tau^2_{U_0}} {\tau^2_{U_0} + \sigma^2_e}
+\end{align}
+
+La Tabla 3 muestra las fuentes de varianza para la variable dependiente, con un ICC = `.286`, lo cual significa que aproximdamente el 28,6% de la variabilidad de los puntajes PDT Matemática corresponden a variación entre colegios a nivel 2, o lo que es igual, que la correlación promedio entre los residuos de estudiantes de un mismo colegio es **.286**.
+
+**Tabla 3**
+
+*Partición de varianza en modelos nulos para variable dependiente y predictores de nivel 1*
+
+```{r table1, echo=FALSE, message=FALSE, warnings=FALSE, results='asis'}
+tabl <- "
+|Modelo          	|Varianza residual|	Varianza del intercepto aleatorio |	ICC	 |Pr(>Chisq)|
+|---------------- |:---------------:|:---------------------------------:|:----:|:--------:|
+|PDT Matemática		|                 |                                   |      |          |
+| - 1 nivel	      |11664			      | -                                 |  -   |   -      |
+| - 2 niveles	    |8534	            | 3422	                            |0,286 |< ,01     |
+|Educación madre	|3,290	          | 1,496	                            |0,313 |< ,01     |
+|Educación padre	|3,290	          | 1,921	                            |0,369 |< ,01     |
+|Quintil	        |3,290	          | 0,927	                            |0,220 |< ,01     |
+|Sexo	            |3,290	          | 1,006	                            |0,234 |< ,01     |
+|Ranking  	      |13738	          | 2502	                            |0,154 |< ,01     |
+"
+cat(tabl)
+```
+
+Como se puede observar, todos los predictores de nivel 1 tuvieron variación significativa en su intercepto aleatorio a nivel 2, por lo cual se crearon nuevas variables que representaron su contribución al modelamiento del puntaje en Matemática en distintos niveles. 
+
+El primer modelo multinivel incluyó todas las variables de interés, sin embargo, algunas pendientes no fueron significativas (como vimos en la matriz de correlaciones, la información de algunas variables fue redundante). La Tabla 4 muestra los índices de ajuste relativo de varios modelos revisados. Luego de remover las variables de Copago y Sector, se consiguió un ajuste más eficiente del modelo a los datos. Aunque la variable de Convenio SEP no logró la significancia estadística, al removerla se perdía información en el modelo, por lo cual se mantuvo para los próximos modelamientos 
+
+**Tabla 4**
+
+*Índices de ajuste relativo de modelos multinivel con efectos fijos*
+
+```{r table2, echo=FALSE, message=FALSE, warnings=FALSE, results='asis'}
+tabl <- "
+|Modelo          	|Parámetros|	LRT    |	p-valor	|Predictor a remover|
+|---------------- |:--------:|:-------:|:-''''---:|:-----------------:|
+|Modelo	completo	|30        | -       |  -       |Copago             |
+|Modelo 2	        |29        | 0,438	 |0.508     |Sector             |
+|Modelo 3	        |27        | ,474	   |0.789     |Convenio SEP       |
+|Modelo 4  	      |26        | 3674.429|< .01     |-                  |
+"
+cat(tabl)
+```
+
+# Pseudo standardized scores
+
+
+
+
+
+
+
+
+
 
 # Conclusiones (preliminares)
-
 
 
 # Cosas por revisar
