@@ -224,20 +224,45 @@ cat(tabl)
 
 A esta nueva versión se agregaron efectos aleatorios. Tras probar distintas opciones, la solución final de predictores se detalla en la Tabla 5. Para comparar las pendientes se calcularon pendientes pseudo estandarizadas según las indicaciones de Hoffman (2015).
 
+<img src="https://github.com/Bladimir-PF/IESED2023-MultilevelAnalysis/blob/main/4.%20Tablas%20y%20figuras/PseudoStandardized%20Slopes.png?raw=true"  width="60%" height="30%">
 
 
+**Tabla 5**
 
+*Resultados modelo multinivel*
 
-# Pseudo standardized scores
-
-
-
-
-
-
-
-
-
+```{r table3, echo=FALSE, message=FALSE, warnings=FALSE, results='asis'}
+tabl <- "
+|		|	Pendiente	|	Pendiente estandarizada	|	SE	|	Pr(>|t|)	|
+|:------|:--------:|:--------:|:------:|:-------:|
+|	Intercepto	|	480,554	|	−	|	6,372	|	<.01	|
+|	**Nivel 1**	|		|		|		|		|
+|	Sexo (CMC)	|	−34,049	|	−0,191	|	0,719	|	<.01	|
+|	Quintil 2 (CMC)	|	−0,696	|	−0,003	|	0,908	|		|
+|	Quintil 3 (CMC)	|	−3,232	|	−0,013	|	1,021	|	<.01	|
+|	Quintil 4 (CMC)	|	−7,152	|	−0,033	|	0,911	|	<.01	|
+|	Quintil 5 (CMC)	|	−7,284	|	−0,029	|	1,065	|	<.01	|
+|	Ed. Padre Media (CMC)	|	6,255	|	0,036	|	0,946	|	<.01	|
+|	Ed. Padre Superior (CMC)	|	17,315	|	0,082	|	1,188	|	<.01	|
+|	Ed. Madre Media (CMC)	|	3,434	|	0,020	|	1,011	|	<.01	|
+|	Ed. Madre Superior (CMC)	|	8,204	|	0,040	|	1,224	|	<.01	|
+|	Ranking (CMC)	|	0,346	|	0,486	|	0,003	|	<.01	|
+|	Nivel 2	|		|		|		|		|
+|	Sexo (ref. 50%)	|	−19,991	|	−0,127	|	5,106	|	<.01	|
+|	Quintil 2 (ref. 30%)	|	31,696	|	0,082	|	12,969	|	<.05	|
+|	Quintil 3 (ref. 30%)	|	14,155	|	0,025	|	15,726	|	>.05	|
+|	Quintil 4 (ref. 30%)	|	−12,826	|	−0,031	|	11,857	|	>.05	|
+|	Quintil 5 (ref. 30%)	|	80,626	|	0,552	|	11,102	|	<.01	|
+|	Ed. Padre Media (ref. 30%)	|	5,243	|	0,031	|	11,757	|	>.05	|
+|	Ed. Padre Superior (ref. 30%)	|	50,174	|	0,430	|	15,169	|	<.01	|
+|	Ed. Madre Media (ref. 30%)	|	35,373	|	0,201	|	12,867	|	<.01	|
+|	Ed. Madre Superior (ref. 30%)	|	74,835	|	0,425	|	16,733	|	<.01	|
+|	Ranking (ref. 600)	|	0,309	|	0,522	|	0,021	|	<.01	|
+|	Tipo escuela (ref. Técnica)	|	18,396	|	0,263	|	1,460	|	<.01	|
+|	Escuela PACE (ref. No)	|	−9,935	|	−0,126	|	2,565	|	<.01	|
+"
+cat(tabl)
+```
 
 # Conclusiones (preliminares)
 
