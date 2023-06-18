@@ -1780,7 +1780,7 @@ admisión 2022 desde una perspectiva multinivel</h1>
 <p>
 <button type="button" class="btn btn-default btn-workflowr btn-workflowr-report" data-toggle="collapse" data-target="#workflowr-report">
 <span class="glyphicon glyphicon-list" aria-hidden="true"></span>
-workflowr <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span>
+workflowr <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span>
 </button>
 </p>
 <div id="workflowr-report" class="collapse">
@@ -1789,7 +1789,8 @@ workflowr <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hi
 <a data-toggle="tab" href="#summary">Summary</a>
 </li>
 <li>
-<a data-toggle="tab" href="#checks"> Checks <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span> </a>
+<a data-toggle="tab" href="#checks"> Checks <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span>
+</a>
 </li>
 <li>
 <a data-toggle="tab" href="#versions">Past versions</a>
@@ -1801,8 +1802,8 @@ workflowr <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hi
 <strong>Last updated:</strong> 2023-06-18
 </p>
 <p>
-<strong>Checks:</strong> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> 6
-<span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span> 1
+<strong>Checks:</strong> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> 7
+<span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span> 0
 </p>
 <p>
 <strong>Knit directory:</strong> <code>~/OneDrive - University of
@@ -1824,19 +1825,16 @@ versions</em> tab lists the development history.
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRMarkdownfilestronguncommittedchanges">
-<span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span> <strong>R Markdown file:</strong> uncommitted
-changes </a>
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRMarkdownfilestronguptodate">
+<span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>R Markdown file:</strong> up-to-date
+</a>
 </p>
 </div>
-<div id="strongRMarkdownfilestronguncommittedchanges" class="panel-collapse collapse">
+<div id="strongRMarkdownfilestronguptodate" class="panel-collapse collapse">
 <div class="panel-body">
-<p>The R Markdown file has unstaged changes. To know which version of
-the R Markdown file created these results, you’ll want to first commit
-it to the Git repo. If you’re still working on the analysis, you can
-ignore this warning. When you’re finished, you can run
-<code>wflow_publish</code> to commit the R Markdown file and build the
-HTML.</p>
+<p>Great! Since the R Markdown file has been committed to the Git
+repository, you know the exact version of the code that produced these
+results.</p>
 </div>
 </div>
 </div>
@@ -1920,13 +1918,13 @@ project makes it easier to run your code on other machines.</p>
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomBladimirPFIESED2023MultilevelAnalysistree6686830310d8838ac3fa53925a31fc12d0c34c98targetblank6686830a">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomBladimirPFIESED2023MultilevelAnalysistreecd850c6b7eecd3bdc8f090d97807bbb399904626targetblankcd850c6a">
 <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong>
-<a href="https://github.com/Bladimir-PF/IESED2023-MultilevelAnalysis/tree/6686830310d8838ac3fa53925a31fc12d0c34c98" target="_blank">6686830</a>
+<a href="https://github.com/Bladimir-PF/IESED2023-MultilevelAnalysis/tree/cd850c6b7eecd3bdc8f090d97807bbb399904626" target="_blank">cd850c6</a>
 </a>
 </p>
 </div>
-<div id="strongRepositoryversionstrongahrefhttpsgithubcomBladimirPFIESED2023MultilevelAnalysistree6686830310d8838ac3fa53925a31fc12d0c34c98targetblank6686830a" class="panel-collapse collapse">
+<div id="strongRepositoryversionstrongahrefhttpsgithubcomBladimirPFIESED2023MultilevelAnalysistreecd850c6b7eecd3bdc8f090d97807bbb399904626targetblankcd850c6a" class="panel-collapse collapse">
 <div class="panel-body">
 <p>
 Great! You are using Git for version control. Tracking code development
@@ -1935,7 +1933,7 @@ reproducibility.
 </p>
 <p>
 The results in this page were generated with repository version
-<a href="https://github.com/Bladimir-PF/IESED2023-MultilevelAnalysis/tree/6686830310d8838ac3fa53925a31fc12d0c34c98" target="_blank">6686830</a>.
+<a href="https://github.com/Bladimir-PF/IESED2023-MultilevelAnalysis/tree/cd850c6b7eecd3bdc8f090d97807bbb399904626" target="_blank">cd850c6</a>.
 See the <em>Past versions</em> tab to see a history of the changes made
 to the R Markdown and HTML files.
 </p>
@@ -1953,11 +1951,7 @@ Ignored files:
     Ignored:    .RData
     Ignored:    .Rhistory
     Ignored:    .Rproj.user/
-    Ignored:    3. Ejemplos adicionales/
-
-Unstaged changes:
-    Modified:   1. Presentacion/Presentacion-principal.Rmd
-    Modified:   1. Presentacion/Presentacion-principal.html
+    Ignored:    1. Presentacion/.Rhistory
 
 </code></pre>
 <p>
@@ -2004,6 +1998,40 @@ Message
 </tr>
 </thead>
 <tbody>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/Bladimir-PF/IESED2023-MultilevelAnalysis/blob/c7cb77a49a2eac8ee005bf565390dc1410489f71/1. Presentacion/Presentacion-principal.Rmd" target="_blank">c7cb77a</a>
+</td>
+<td>
+Bladimir
+</td>
+<td>
+2023-06-18
+</td>
+<td>
+Final set of results and complementary readings
+</td>
+</tr>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/Bladimir-PF/IESED2023-MultilevelAnalysis/c7cb77a49a2eac8ee005bf565390dc1410489f71/1. Presentacion/Presentacion-principal.html" target="_blank">c7cb77a</a>
+</td>
+<td>
+Bladimir
+</td>
+<td>
+2023-06-18
+</td>
+<td>
+Final set of results and complementary readings
+</td>
+</tr>
 <tr>
 <td>
 Rmd
