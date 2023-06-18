@@ -137,7 +137,9 @@ Respecto a las variables de escuela, quienes asistieron a establecimientos Human
 
 *Rendimiento en la PDT de Matemática según variables de caracterización*
 
-![Elaboración propia con datos del proceso de admisión 2022](https://github.com/Bladimir-PF/IESED2023-MultilevelAnalysis/blob/main/4.%20Tablas%20y%20figuras/means.png?raw=true)
+![Elaboración propia con datos del proceso de admisión 2022](https://github.com/Bladimir-PF/IESED2023-MultilevelAnalysis/blob/main/4.%20Tablas%20y%20figuras/Table%202.png?raw=true)
+
+&nbsp;
 
 La Tabla 2 muestra las correlaciones entre predictores y la variable dependiente, lo cual es útil para explorar posibles inconvenientes de colinearidad en el modelo de regresión. Por ejemplo, entre la educación del padre y la madre existe una correlación estimada de 0.684, lo cual puede vincularse con la tendencia de las personas a emparejarse con otros/as en similar posición social o entorno. En particular, se constataron altos niveles de correlación entre las variables de caracterización de la escuela, lo cual puede estar relacionado con el tipo de información que proveen: situación socioeconómica de los estudiantes.
 
@@ -158,7 +160,10 @@ A continuación se destacan los resultados más importantes de los múltiples mo
 El primer paso fue estimar un modelo multinivel vacío con la variable dependiente para calcular el ICC y establecer las fuentes de variación que cada predictor estaría tratando de reducir o explicar. La fórmula para calcular el ICC es sencilla;
 
 ```{r, eval=FALSE}
-# Modelo
+# Modelo vacío de un nivel
+summary(lm(MATH ~ 1, data = training_data))
+
+# Modelo vacío multinivel
 Modelo_vacio_VD <- lmer(
   formula = MATH ~ 1 + (1|RBD),
   control = lmerControl(optimizer = "Nelder_Mead"),
@@ -169,13 +174,13 @@ Modelo_vacio_VD <- lmer(
 summary(Modelo_vacio_VD, ddf="Satterthwaite"); llikAIC(Modelo_vacio_VD, chkREML=FALSE)
 
 # Ajuste en comparación a un modelo sin efectos aleatorios
-ranova(Modelo_vacio_VD, reduce.term=TRUE) # = 0.286
+ranova(Modelo_vacio_VD, reduce.term=TRUE) # = 0.313
 
 # Cálculo del ICC
 icc(Modelo_vacio_VD) # con función del paquete performance
 
 icc2 <- data.frame(VarCorr(Modelo_vacio_VD),comp=c("Variance")) #Cálculo manual
-round(icc2[1,4]/(sum(icc2[,4])),3) # = 0.286
+round(icc2[1,4]/(sum(icc2[,4])),3) # = 0.313
 ```
 
 \begin{align}
