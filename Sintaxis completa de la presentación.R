@@ -244,7 +244,7 @@ val_dat <- filter(dat6, train == 1) # training data, 74.594
 # write.csv(tr_dat,'6. Clustered admission tests results/training_data.csv', row.names = F)
 # write.csv(val_dat,'6. Clustered admission tests results/validation_data.csv', row.names = F)
 
-rm(list = ls())
+# rm(list = ls())
 
 # Descriptive analysis ####
 
@@ -346,12 +346,9 @@ dat8$label2 <- factor(dat8$label2,
 library(forcats)
 
 descriptives <- ggplot(dat8 %>% 
-         tidyr::drop_na(label2), aes(y = fct_reorder(label2, desc(label2)), x = MATH, fill = label2))+
-  geom_violin(alpha = .75)+
-  stat_summary(fun = "mean",
-               geom = "crossbar", 
-               width = 0.6,
-               colour = "black")+
+         tidyr::drop_na(label2), aes(y = fct_reorder(label2, desc(label2)), x = MATH))+
+  geom_violin(aes(fill = label2),alpha = .75)+
+  geom_boxplot(width=0.1, color="black", alpha=0.6,outlier.shape = NA) +
   labs(y = "Variables de caracterización", x = 'Puntaje PDT Matemática (media = 505.156)')+
   scale_x_continuous(limits = c(150, 850), breaks = seq(400, 800, 200)) +
   theme_bw(base_size = 12)+
@@ -1037,7 +1034,166 @@ ICC_cond <- data.frame(VarCorr(m18),comp=c("Variance"))
 
 training_data$m18 <- predict(m18, re.form=NA)
 (cor.test(training_data$m18, training_data$MATH, method="pearson")$estimate)^2 #Total R2 relative to EM
-# 0.3867511  
+# 0.3867511
+
+# Plotting probabilities
+
+training_data <- training_data %>% mutate(
+  SCHOOL_SECTOR = factor(SCHOOL_SECTOR,
+                                        levels=c("0","1","2"),
+                                        labels = c("Público",
+                                                   "Particular Subvencionado",
+                                                   "Privado")),
+  SCHOOL_TYPE_HUM = factor(SCHOOL_TYPE_HUM,
+                                        levels=c("0","1"),
+                                        labels = c("Técnico Profesional",
+                                                   "Humanista")),
+  SCHOOL_PACE = factor(SCHOOL_PACE,
+                                        levels=c("0","1"),
+                                        labels = c("Sin PACE",
+                                                   "Con PACE")))
+
+## By sex and school sector
+probs_sex_school <- ggplot(training_data, aes(y = m18, x = as.factor(SEX_FEMALE)))+
+  geom_violin(aes(fill = as.factor(SEX_FEMALE)), alpha = .75)+
+  geom_boxplot(width=0.1, color="black", alpha=0.6,outlier.shape = NA)+
+  labs(y = "Puntaje predicho en PDT Matemática", x = '')+
+  scale_fill_discrete("Sexo", labels = c("Hombres", "Mujeres"))+
+  scale_y_continuous(limits = c(300, 850)) +
+  facet_grid(. ~ SCHOOL_SECTOR)+
+  theme_bw(base_size = 12)+
+  theme(axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        legend.position="bottom")
+
+ggsave(
+  filename = 'probs_sex_school.png',
+  path = 'C:/Users/geral/OneDrive - University of Iowa/PhD portfolio/1.-Research/6. Clustered admission tests results/IESED2023-MultilevelAnalysis/4. Tablas y figuras',
+  plot = probs_sex_school,
+  device = png,
+  width = 7,
+  height = 9,
+  dpi = 400)
+
+## By sex and school type
+probs_sex_schooltype <- ggplot(training_data, aes(y = m18, x = as.factor(SEX_FEMALE)))+
+  geom_violin(aes(fill = as.factor(SEX_FEMALE)), alpha = .75)+
+  geom_boxplot(width=0.1, color="black", alpha=0.6,outlier.shape = NA)+
+  labs(y = "Puntaje predicho en PDT Matemática", x = '')+
+  scale_fill_discrete("Sexo", labels = c("Hombres", "Mujeres"))+
+  scale_y_continuous(limits = c(300, 850)) +
+  facet_grid(. ~ SCHOOL_TYPE_HUM)+
+  theme_bw(base_size = 12)+
+  theme(axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        legend.position="bottom")
+
+ggsave(
+  filename = 'probs_sex_schooltype.png',
+  path = 'C:/Users/geral/OneDrive - University of Iowa/PhD portfolio/1.-Research/6. Clustered admission tests results/IESED2023-MultilevelAnalysis/4. Tablas y figuras',
+  plot = probs_sex_schooltype,
+  device = png,
+  width = 7,
+  height = 9,
+  dpi = 400)
+
+## By Sex and PACE
+probs_sex_schoolPACE <- ggplot(training_data, aes(y = m18, x = as.factor(SEX_FEMALE)))+
+  geom_violin(aes(fill = as.factor(SEX_FEMALE)), alpha = .75)+
+  geom_boxplot(width=0.1, color="black", alpha=0.6,outlier.shape = NA)+
+  labs(y = "Puntaje predicho en PDT Matemática", x = '')+
+  scale_fill_discrete("Sexo", labels = c("Hombres", "Mujeres"))+
+  scale_y_continuous(limits = c(300, 850)) +
+  facet_grid(. ~ SCHOOL_PACE)+
+  theme_bw(base_size = 12)+
+  theme(axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        legend.position="bottom")
+
+ggsave(
+  filename = 'probs_sex_schoolPACE.png',
+  path = 'C:/Users/geral/OneDrive - University of Iowa/PhD portfolio/1.-Research/6. Clustered admission tests results/IESED2023-MultilevelAnalysis/4. Tablas y figuras',
+  plot = probs_sex_schoolPACE,
+  device = png,
+  width = 7,
+  height = 9,
+  dpi = 400)
+
+## By sex and school sector
+probs_qfam_school <- ggplot(training_data, aes(y = m18, x = Q_FAM_INC))+
+  geom_violin(aes(fill = Q_FAM_INC), alpha = .75)+
+  geom_boxplot(width=0.1, color="black", alpha=0.6,outlier.shape = NA)+
+  labs(y = "Puntaje predicho en PDT Matemática", x = '')+
+  scale_fill_discrete("Quintil de ingresos familiares percápita",
+                      labels = c("Q1", "Q2","Q3", "Q4","Q5"))+
+  scale_y_continuous(limits = c(300, 850)) +
+  facet_grid(. ~ SCHOOL_SECTOR)+
+  theme_bw(base_size = 12)+
+  theme(axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        legend.position="bottom")
+
+ggsave(
+  filename = 'probs_qfam_school.png',
+  path = 'C:/Users/geral/OneDrive - University of Iowa/PhD portfolio/1.-Research/6. Clustered admission tests results/IESED2023-MultilevelAnalysis/4. Tablas y figuras',
+  plot = probs_qfam_school,
+  device = png,
+  width = 7,
+  height = 9,
+  dpi = 400)
+
+# By qfam and school type
+probs_qfam_schooltype <- ggplot(training_data, aes(y = m18, x = Q_FAM_INC))+
+  geom_violin(aes(fill = Q_FAM_INC), alpha = .75)+
+  geom_boxplot(width=0.1, color="black", alpha=0.6,outlier.shape = NA)+
+  labs(y = "Puntaje predicho en PDT Matemática", x = '')+
+  scale_fill_discrete("Quintil de ingresos familiares percápita",
+                      labels = c("Q1", "Q2","Q3", "Q4","Q5"))+
+  scale_y_continuous(limits = c(300, 850)) +
+  facet_grid(. ~ SCHOOL_TYPE_HUM)+
+  theme_bw(base_size = 12)+
+  theme(axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        legend.position="bottom")
+
+ggsave(
+  filename = 'probs_qfam_schooltype.png',
+  path = 'C:/Users/geral/OneDrive - University of Iowa/PhD portfolio/1.-Research/6. Clustered admission tests results/IESED2023-MultilevelAnalysis/4. Tablas y figuras',
+  plot = probs_qfam_schooltype,
+  device = png,
+  width = 7,
+  height = 9,
+  dpi = 400)
+
+# By qfam and PACE
+probs_qfam_schoolPACE <- ggplot(training_data, aes(y = m18, x = Q_FAM_INC))+
+  geom_violin(aes(fill = Q_FAM_INC), alpha = .75)+
+  geom_boxplot(width=0.1, color="black", alpha=0.6,outlier.shape = NA)+
+  labs(y = "Puntaje predicho en PDT Matemática", x = '')+
+  scale_fill_discrete("Quintil de ingresos familiares percápita",
+                      labels = c("Q1", "Q2","Q3", "Q4","Q5"))+
+  scale_y_continuous(limits = c(300, 850)) +
+  facet_grid(. ~ SCHOOL_PACE)+
+  theme_bw(base_size = 12)+
+  theme(axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        legend.position="bottom")
+
+ggsave(
+  filename = 'probs_qfam_schoolPACE.png',
+  path = 'C:/Users/geral/OneDrive - University of Iowa/PhD portfolio/1.-Research/6. Clustered admission tests results/IESED2023-MultilevelAnalysis/4. Tablas y figuras',
+  plot = probs_qfam_schoolPACE,
+  device = png,
+  width = 7,
+  height = 9,
+  dpi = 400)
+
+
+
+
+
+
+
 
 # Validation database
 
