@@ -83,7 +83,7 @@ El primer filtro se aplica de cualquier modo a la muestra, ya que el modelo util
 
 La muestra final estuvo constituida por 147.562 postulantes. Sin embargo, para probar la capacidad predictiva del modelo, se utilizó validación cruzada [@james2013introduction], específicamente un conjunto de validación que representa la mitad de la muestra (seleccionada aleatoriamente según colegio [RBD]). En el primer conjunto de datos se estiman los diferentes modelos de interés hasta obtener la versión final, luego, en el conjunto de validación, se ajusta el mismo modelo y se comparan los estadísticos de ajuste.
 
-En particular, el conjunto de entrenamiento estuvo constituido por 72.968 postulantes pertenencientes a xxxx colegios. El conjunto de validación estuvo constituido por 74.594 casos distribuidos en xxxx colegios.
+En particular, el conjunto de entrenamiento estuvo constituido por 72.968 postulantes pertenencientes a 1405 colegios. El conjunto de validación estuvo constituido por 74.594 casos distribuidos en 1405 colegios.
 
 ## Variables
 
