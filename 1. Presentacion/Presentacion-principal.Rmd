@@ -309,6 +309,24 @@ tabl <- "
 cat(tabl)
 ```
 
+# Visualización de probabilidades
+
+*Probabilidades estimadas según sexo y tipo de colegio*
+
+<img src="https://github.com/Bladimir-PF/IESED2023-MultilevelAnalysis/blob/main/4.%20Tablas%20y%20figuras/probs_sex_schooltype.png?raw=true"  width="60%" height="30%">
+
+*Probabilidades estimadas según sexo y convenio PACE*
+
+<img src="https://github.com/Bladimir-PF/IESED2023-MultilevelAnalysis/blob/main/4.%20Tablas%20y%20figuras/probs_sex_schoolPACE.png?raw=true"  width="60%" height="30%">
+
+*Probabilidades estimadas según quintil de ingresos familiares percápita y tipo de colegio*
+
+<img src="https://github.com/Bladimir-PF/IESED2023-MultilevelAnalysis/blob/main/4.%20Tablas%20y%20figuras/probs_qfam_schooltype.png?raw=true"  width="60%" height="30%">
+
+*Probabilidades estimadas según quintil de ingresos familiares percápita y convenio PACE*
+
+<img src="https://github.com/Bladimir-PF/IESED2023-MultilevelAnalysis/blob/main/4.%20Tablas%20y%20figuras/probs_qfam_schoolPACE.png?raw=true"  width="60%" height="30%">
+
 # Conclusiones (preliminares)
 
 En relación con la pregunta de investigación sobre si existen diferencias en el rendimiento de la PDT de Matemática 2022 entre estudiantes que puedan ser atribuidas a características socioeconómicas individuales y escolares, podemos concluir que:
