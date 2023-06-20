@@ -1,6 +1,6 @@
 ---
 title: "Relación entre el rendimiento en la Prueba de Transición de Matemática y factores socioeconómicos en el proceso de admisión 2022 desde una perspectiva multinivel"
-author: "Geraldo Padilla & Lesa Hoffman"
+author: "Geraldo Padilla, Lesa Hoffman, & Claudia Suazo"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output: 
   workflowr::wflow_html:
